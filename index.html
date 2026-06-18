@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro de Señaléticas - por Grupos</title>
+    <title>Registro de Señaléticas - con orden personalizado</title>
+    <!-- Librerías para Excel y Sortable -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -157,6 +159,16 @@
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
             gap: 10px;
+            min-height: 60px;
+        }
+        /* Estilo para drag */
+        .gallery-grid .sortable-drag {
+            opacity: 0.6;
+            transform: scale(0.95);
+        }
+        .gallery-grid .sortable-ghost {
+            opacity: 0.3;
+            border: 2px dashed #0b2a45;
         }
 
         .signal-card {
@@ -165,13 +177,17 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.08);
             padding: 6px 6px 8px;
             text-align: center;
-            cursor: pointer;
+            cursor: grab;
             transition: all 0.15s ease;
             border: 2px solid transparent;
             display: flex;
             flex-direction: column;
             align-items: center;
             position: relative;
+            user-select: none;
+        }
+        .signal-card:active {
+            cursor: grabbing;
         }
         .signal-card:hover {
             transform: translateY(-2px);
@@ -190,6 +206,7 @@
             border-radius: 4px;
             padding: 4px;
             display: block;
+            pointer-events: none;
         }
         .signal-card .s-name {
             font-size: 0.7rem;
@@ -382,7 +399,7 @@
             background: #fff;
             max-width: 95vw;
             max-height: 90vh;
-            width: 1200px; /* más ancho para la tabla */
+            width: 1200px;
             border-radius: 12px;
             padding: 20px;
             display: flex;
@@ -456,11 +473,11 @@
             cursor: pointer;
         }
 
-        /* Tabla de resultados - más grande */
+        /* Tabla de resultados */
         .table-wrap {
             overflow: auto;
             flex: 1;
-            font-size: 0.95rem; /* fuente más grande */
+            font-size: 0.95rem;
         }
         .table-wrap table {
             width: 100%;
@@ -475,6 +492,23 @@
             z-index: 2;
             white-space: nowrap;
             font-size: 0.9rem;
+        }
+        .table-wrap th.sortable {
+            cursor: pointer;
+            user-select: none;
+        }
+        .table-wrap th.sortable::after {
+            content: ' ↕';
+            font-size: 0.7rem;
+            opacity: 0.6;
+        }
+        .table-wrap th.sortable.asc::after {
+            content: ' ↑';
+            opacity: 1;
+        }
+        .table-wrap th.sortable.desc::after {
+            content: ' ↓';
+            opacity: 1;
         }
         .table-wrap td {
             padding: 8px 12px;
@@ -541,7 +575,7 @@
 
     <!-- Top bar -->
     <header class="top-bar">
-        <h1>🚦 Señaléticas <small>por grupos</small></h1>
+        <h1>🚦 Señaléticas <small>orden personalizado</small></h1>
         <div class="top-actions">
             <button class="btn btn-outline" id="btnVerResultados">📊 Ver registros</button>
             <button class="btn btn-primary" id="btnExportarExcel">📤 Exportar</button>
@@ -629,7 +663,9 @@
         <div class="table-wrap">
             <table>
                 <thead><tr>
-                    <th>ÍTEM</th><th>RUTA</th><th>PROGRESIVA</th><th>LADO</th>
+                    <th>ÍTEM</th><th>RUTA</th>
+                    <th class="sortable" id="thProgresiva">PROGRESIVA</th>
+                    <th>LADO</th>
                     <th>CÓDIGO</th><th>TIPO</th><th>SUBTIPO</th><th>DESCRIPCIÓN</th>
                     <th>CONDICIÓN</th><th>OBSERVACIONES</th><th>ACCIONES</th>
                 </tr></thead>
@@ -682,7 +718,7 @@
 
 <script>
     // ============================================================
-    // CATÁLOGO INICIAL REDUCIDO (solo los códigos solicitados)
+    // CATÁLOGO INICIAL REDUCIDO
     // ============================================================
     const INITIAL_CODES = [
         "R-66", "R-66A", "P-48", "P-49", "I-6", "I-31B", "R-30F", "P-2B",
@@ -727,11 +763,14 @@
     let registros = [];
     let nextId = 1;
     let selectedCodigo = null;
+    let ordenProgresiva = null; // 'asc' o 'desc'
+    let ordenPersonalizado = {}; // { tipo: [codigo1, codigo2, ...] }
 
     // ============================================================
     // INICIALIZACIÓN
     // ============================================================
     function init() {
+        // Cargar desde localStorage
         const storedCatalogo = localStorage.getItem('catalogo');
         if (storedCatalogo) {
             try { catalogo = JSON.parse(storedCatalogo); } catch(e) { catalogo = buildInitialCatalog(); }
@@ -749,6 +788,10 @@
                 if (registros.length > 0) nextId = Math.max(...registros.map(r => r.id || 0)) + 1;
             } catch(e) { registros = []; }
         }
+        const storedOrden = localStorage.getItem('ordenPersonalizado');
+        if (storedOrden) {
+            try { ordenPersonalizado = JSON.parse(storedOrden); } catch(e) { ordenPersonalizado = {}; }
+        }
         if (catalogo.length === 0) {
             catalogo = buildInitialCatalog();
             localStorage.setItem('catalogo', JSON.stringify(catalogo));
@@ -758,6 +801,7 @@
         llenarSubtipos();
         actualizarSeleccion();
         actualizarStatus('Listo', false);
+        // Inicializar Sortable en los grids (se llama después de renderizar)
     }
 
     function buildInitialCatalog() {
@@ -847,11 +891,45 @@
     }
 
     // ============================================================
-    // RENDER GALERÍA (AGRUPADA POR TIPO)
+    // ORDEN PERSONALIZADO (guardar y aplicar)
+    // ============================================================
+    function guardarOrdenPersonalizado() {
+        localStorage.setItem('ordenPersonalizado', JSON.stringify(ordenPersonalizado));
+    }
+
+    function obtenerOrdenParaTipo(tipo) {
+        if (ordenPersonalizado[tipo] && ordenPersonalizado[tipo].length > 0) {
+            return ordenPersonalizado[tipo];
+        }
+        return null;
+    }
+
+    function aplicarOrdenPersonalizado(tipo, señales) {
+        const orden = obtenerOrdenParaTipo(tipo);
+        if (!orden) return señales;
+        // Ordenar según el orden guardado
+        const map = new Map(señales.map(s => [s.codigo, s]));
+        const ordenados = [];
+        for (const codigo of orden) {
+            if (map.has(codigo)) {
+                ordenados.push(map.get(codigo));
+                map.delete(codigo);
+            }
+        }
+        // Añadir los que no estaban en el orden (por si acaso)
+        for (const [_, s] of map) {
+            ordenados.push(s);
+        }
+        return ordenados;
+    }
+
+    // ============================================================
+    // RENDER GALERÍA (AGRUPADA POR TIPO CON ORDEN PERSONALIZADO)
     // ============================================================
     function createSignalCard(s) {
         const card = document.createElement('div');
         card.className = `signal-card type-${s.tipo.replace(/ /g, '')}`;
+        card.setAttribute('data-codigo', s.codigo);
         if (selectedCodigo === s.codigo) card.classList.add('selected');
 
         const imgSrc = imagenes[s.codigo] || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"%3E%3Crect width="100" height="100" fill="%23f1f5f9"/%3E%3Ctext x="50" y="55" font-size="24" text-anchor="middle" fill="%234b5563"%3E🚦%3C/text%3E%3C/svg%3E';
@@ -915,6 +993,7 @@
             return;
         }
 
+        // Agrupar por tipo
         const groups = {};
         filtradas.forEach(s => {
             if (!groups[s.tipo]) groups[s.tipo] = [];
@@ -944,8 +1023,11 @@
 
             const grid = document.createElement('div');
             grid.className = 'gallery-grid';
+            grid.dataset.tipo = tipo;
 
-            groups[tipo].forEach(s => {
+            // Aplicar orden personalizado
+            let señalesOrdenadas = aplicarOrdenPersonalizado(tipo, groups[tipo]);
+            señalesOrdenadas.forEach(s => {
                 const card = createSignalCard(s);
                 grid.appendChild(card);
             });
@@ -953,17 +1035,62 @@
             section.appendChild(grid);
             contenedor.appendChild(section);
         });
+
         actualizarContadores();
+
+        // Inicializar Sortable después de renderizar
+        inicializarSortable();
     }
 
     // ============================================================
-    // GESTIÓN DE CATÁLOGO (agregar/eliminar)
+    // SORTABLE: arrastrar y soltar dentro de cada grupo
+    // ============================================================
+    let sortableInstances = [];
+
+    function inicializarSortable() {
+        // Destruir instancias anteriores
+        sortableInstances.forEach(s => s.destroy());
+        sortableInstances = [];
+
+        document.querySelectorAll('.gallery-grid').forEach(grid => {
+            const tipo = grid.dataset.tipo;
+            if (!tipo) return;
+
+            const sortable = new Sortable(grid, {
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                dragClass: 'sortable-drag',
+                handle: '.signal-card',
+                filter: '.card-actions button', // evitar que los botones activen drag
+                onEnd: function(evt) {
+                    // Obtener el nuevo orden de códigos en este grid
+                    const items = grid.querySelectorAll('.signal-card');
+                    const nuevosCodigos = Array.from(items).map(el => el.dataset.codigo);
+                    // Guardar en ordenPersonalizado
+                    ordenPersonalizado[tipo] = nuevosCodigos;
+                    guardarOrdenPersonalizado();
+                    actualizarStatus(`Orden de ${tipo} actualizado`, false);
+                }
+            });
+            sortableInstances.push(sortable);
+        });
+    }
+
+    // ============================================================
+    // GESTIÓN DE CATÁLOGO (agregar/eliminar/editar)
     // ============================================================
     function eliminarSenal(codigo) {
+        const senal = catalogo.find(s => s.codigo === codigo);
+        const tipo = senal ? senal.tipo : null;
         catalogo = catalogo.filter(s => s.codigo !== codigo);
         delete imagenes[codigo];
         localStorage.setItem('catalogo', JSON.stringify(catalogo));
         localStorage.setItem('imagenes', JSON.stringify(imagenes));
+        // Eliminar del orden personalizado
+        if (tipo && ordenPersonalizado[tipo]) {
+            ordenPersonalizado[tipo] = ordenPersonalizado[tipo].filter(c => c !== codigo);
+            guardarOrdenPersonalizado();
+        }
         if (selectedCodigo === codigo) {
             selectedCodigo = null;
             actualizarSeleccion();
@@ -980,6 +1107,10 @@
         }
         catalogo.push({ nombre, codigo, tipo, subtipo: subtipo || '' });
         localStorage.setItem('catalogo', JSON.stringify(catalogo));
+        // Añadir al final del orden personalizado para ese tipo
+        if (!ordenPersonalizado[tipo]) ordenPersonalizado[tipo] = [];
+        ordenPersonalizado[tipo].push(codigo);
+        guardarOrdenPersonalizado();
         llenarSubtipos();
         renderGaleria();
         actualizarStatus(`✅ Señal ${codigo} agregada`, false);
@@ -993,7 +1124,24 @@
         }
         const index = catalogo.findIndex(s => s.codigo === codigoViejo);
         if (index === -1) return false;
+        const viejoTipo = catalogo[index].tipo;
         catalogo[index] = { nombre, codigo, tipo, subtipo: subtipo || '' };
+        // Actualizar orden personalizado si cambia el tipo o el código
+        if (viejoTipo !== tipo) {
+            // Quitar del orden viejo, añadir al nuevo
+            if (ordenPersonalizado[viejoTipo]) {
+                ordenPersonalizado[viejoTipo] = ordenPersonalizado[viejoTipo].filter(c => c !== codigoViejo);
+            }
+            if (!ordenPersonalizado[tipo]) ordenPersonalizado[tipo] = [];
+            ordenPersonalizado[tipo].push(codigo);
+        } else if (codigoViejo !== codigo) {
+            // Mismo tipo, solo cambia código
+            if (ordenPersonalizado[tipo]) {
+                const idx = ordenPersonalizado[tipo].indexOf(codigoViejo);
+                if (idx !== -1) ordenPersonalizado[tipo][idx] = codigo;
+            }
+        }
+        // Si cambió el código, actualizar imágenes y selección
         if (codigoViejo !== codigo) {
             if (imagenes[codigoViejo]) {
                 imagenes[codigo] = imagenes[codigoViejo];
@@ -1006,6 +1154,7 @@
             }
         }
         localStorage.setItem('catalogo', JSON.stringify(catalogo));
+        guardarOrdenPersonalizado();
         llenarSubtipos();
         renderGaleria();
         actualizarStatus(`✅ Señal ${codigo} actualizada`, false);
@@ -1151,11 +1300,15 @@
     }
 
     // ============================================================
-    // MODAL RESULTADOS (más grande)
+    // MODAL RESULTADOS CON ORDEN POR PROGRESIVA
     // ============================================================
     function mostrarResultados() {
         const modal = document.getElementById('modalResultados');
         modal.classList.add('open');
+        renderTablaResultados();
+    }
+
+    function renderTablaResultados() {
         const tbody = document.getElementById('tbodyResultados');
         const sinReg = document.getElementById('sinRegistros');
         tbody.innerHTML = '';
@@ -1164,7 +1317,20 @@
             return;
         }
         sinReg.style.display = 'none';
-        registros.forEach((r, idx) => {
+
+        // Ordenar según estado actual
+        let datos = [...registros];
+        if (ordenProgresiva) {
+            datos.sort((a, b) => {
+                // Comparar como string numérico (puede contener +)
+                const va = a.progresiva || '';
+                const vb = b.progresiva || '';
+                if (ordenProgresiva === 'asc') return va.localeCompare(vb, undefined, { numeric: true });
+                else return vb.localeCompare(va, undefined, { numeric: true });
+            });
+        }
+
+        datos.forEach((r, idx) => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${idx+1}</td>
@@ -1187,6 +1353,17 @@
                 eliminarRegistro(id);
             });
         });
+        // Actualizar indicador de orden en el th
+        const th = document.getElementById('thProgresiva');
+        th.className = 'sortable';
+        if (ordenProgresiva) th.classList.add(ordenProgresiva);
+    }
+
+    function toggleOrdenProgresiva() {
+        if (ordenProgresiva === 'asc') ordenProgresiva = 'desc';
+        else if (ordenProgresiva === 'desc') ordenProgresiva = null;
+        else ordenProgresiva = 'asc';
+        renderTablaResultados();
     }
 
     function cerrarModalResultados() {
@@ -1265,6 +1442,9 @@
                 }
                 catalogo = nuevos;
                 localStorage.setItem('catalogo', JSON.stringify(catalogo));
+                // Resetear orden personalizado
+                ordenPersonalizado = {};
+                guardarOrdenPersonalizado();
                 const codigosExistentes = new Set(catalogo.map(s => s.codigo));
                 Object.keys(imagenes).forEach(key => {
                     if (!codigosExistentes.has(key)) delete imagenes[key];
@@ -1285,6 +1465,8 @@
         if (!confirm('Restaurar el catálogo inicial (solo las 25 señales) ?')) return;
         catalogo = buildInitialCatalog();
         localStorage.setItem('catalogo', JSON.stringify(catalogo));
+        ordenPersonalizado = {};
+        guardarOrdenPersonalizado();
         llenarSubtipos();
         renderGaleria();
         actualizarContadores();
@@ -1297,10 +1479,12 @@
     document.addEventListener('DOMContentLoaded', () => {
         init();
 
+        // Filtros
         document.getElementById('filtroTipo').addEventListener('change', renderGaleria);
         document.getElementById('filtroSubtipo').addEventListener('change', renderGaleria);
         document.getElementById('filtroBusqueda').addEventListener('input', renderGaleria);
 
+        // Botones principales
         document.getElementById('btnAgregar').addEventListener('click', agregarRegistro);
         document.getElementById('btnLimpiarSeleccion').addEventListener('click', limpiarSeleccion);
         document.getElementById('btnVerResultados').addEventListener('click', mostrarResultados);
@@ -1321,6 +1505,10 @@
             }
         });
 
+        // Orden por progresiva (clic en encabezado)
+        document.getElementById('thProgresiva').addEventListener('click', toggleOrdenProgresiva);
+
+        // Modal de agregar/editar señal
         document.getElementById('btnAbrirAgregar').addEventListener('click', abrirModalAgregar);
         document.getElementById('closeModalSenal').addEventListener('click', cerrarModalSenal);
         document.getElementById('modalAgregarSenal').addEventListener('click', (e) => {
@@ -1329,6 +1517,7 @@
         document.getElementById('btnGuardarSenal').addEventListener('click', guardarSenal);
         document.getElementById('btnEliminarSenal').addEventListener('click', eliminarSenalDesdeModal);
 
+        // Enter para agregar registro
         document.querySelectorAll('#inputRuta, #inputProgresiva, #inputObservaciones').forEach(el => {
             el.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
@@ -1342,7 +1531,7 @@
         document.getElementById('galeria').addEventListener('dblclick', (e) => {
             const card = e.target.closest('.signal-card');
             if (!card) return;
-            const codigo = card.querySelector('.s-code')?.textContent;
+            const codigo = card.dataset.codigo;
             if (codigo) abrirModalEditar(codigo);
         });
     });
