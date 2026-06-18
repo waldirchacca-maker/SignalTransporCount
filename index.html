@@ -3,2499 +3,1294 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CORRECTECH - Sistema Profesional de Gestión de Correcciones</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Registro de Señaléticas</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
-        /* Reset y configuración base */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
         }
-
-        :root {
-            --primary-dark: #1e3a8a;
-            --primary: #2563eb;
-            --primary-light: #3b82f6;
-            --secondary: #475569;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --info: #06b6d4;
-            --light: #f8fafc;
-            --dark: #1e293b;
-            --gray-100: #f1f5f9;
-            --gray-200: #e2e8f0;
-            --gray-300: #cbd5e1;
-            --gray-400: #94a3b8;
-            --gray-500: #64748b;
-            --gray-600: #475569;
-            --gray-700: #334155;
-            --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
-            --shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-            --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
-            --radius: 8px;
-            --radius-lg: 12px;
-            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        body {
-            background: linear-gradient(135deg, #f6f9fc 0%, #edf2f7 100%);
-            color: var(--dark);
-            min-height: 100vh;
-            line-height: 1.6;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1600px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 320px 1fr;
-            gap: 24px;
-        }
-
-        /* Header Superior */
-        .app-header {
-            grid-column: 1 / -1;
-            background: white;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow);
-            padding: 24px 32px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-left: 6px solid var(--primary);
-        }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .app-logo {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .logo-icon {
-            width: 56px;
-            height: 56px;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 24px;
-            box-shadow: var(--shadow);
-        }
-
-        .logo-text h1 {
-            font-size: 28px;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            line-height: 1.2;
-        }
-
-        .logo-text p {
-            color: var(--gray-500);
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-        }
-
-        /* Panel Lateral */
-        .sidebar {
-            background: white;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow);
-            padding: 28px;
-            height: fit-content;
-            position: sticky;
-            top: 20px;
-            border: 1px solid var(--gray-200);
-        }
-
-        /* Estadísticas */
-        .stats-container {
-            margin-bottom: 32px;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .stat-card {
-            background: var(--light);
-            padding: 20px;
-            border-radius: var(--radius);
-            border: 1px solid var(--gray-200);
-            transition: var(--transition);
-            cursor: pointer;
-            position: relative;
+        html, body {
+            height: 100%;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+            background: #f0f2f5;
+            color: #1e293b;
             overflow: hidden;
         }
-
-        .stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow);
-            border-color: var(--primary-light);
-        }
-
-        .stat-card.active {
-            border-color: var(--primary);
-            background: linear-gradient(135deg, rgba(37, 99, 235, 0.05), rgba(30, 58, 138, 0.05));
-        }
-
-        .stat-card.active::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--primary), var(--primary-light));
-        }
-
-        .stat-number {
-            font-size: 32px;
-            font-weight: 800;
-            color: var(--primary-dark);
-            line-height: 1;
-            margin-bottom: 8px;
-        }
-
-        .stat-label {
-            font-size: 13px;
-            color: var(--gray-600);
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        /* Filtros Rápidos */
-        .quick-filters {
-            margin-bottom: 32px;
-        }
-
-        .section-title {
-            font-size: 15px;
-            font-weight: 700;
-            color: var(--dark);
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--gray-100);
-        }
-
-        .section-title i {
-            color: var(--primary);
-        }
-
-        .filter-buttons {
+        .app {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            height: 100vh;
         }
 
-        .filter-btn {
-            padding: 14px 18px;
-            border: 1px solid var(--gray-200);
-            border-radius: var(--radius);
-            background: white;
-            color: var(--gray-700);
-            font-weight: 500;
-            text-align: left;
-            cursor: pointer;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 14px;
-        }
-
-        .filter-btn:hover {
-            background: var(--light);
-            border-color: var(--primary-light);
-            color: var(--primary);
-            transform: translateX(4px);
-        }
-
-        .filter-btn.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-
-        /* Documentos Recientes */
-        .recent-docs {
-            margin-top: 32px;
-            padding-top: 24px;
-            border-top: 2px solid var(--gray-100);
-        }
-
-        .doc-list {
-            max-height: 300px;
-            overflow-y: auto;
-            padding-right: 8px;
-        }
-
-        .doc-list::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .doc-list::-webkit-scrollbar-track {
-            background: var(--gray-100);
-            border-radius: 3px;
-        }
-
-        .doc-list::-webkit-scrollbar-thumb {
-            background: var(--gray-300);
-            border-radius: 3px;
-        }
-
-        .doc-item {
+        /* Top bar */
+        .top-bar {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 12px 16px;
-            margin-bottom: 8px;
-            background: white;
-            border: 1px solid var(--gray-200);
-            border-radius: var(--radius);
-            transition: var(--transition);
-            cursor: pointer;
+            background: #0b2a45;
+            color: #fff;
+            padding: 6px 20px;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+            gap: 6px;
         }
-
-        .doc-item:hover {
-            border-color: var(--primary-light);
-            transform: translateX(2px);
-            box-shadow: var(--shadow-sm);
-        }
-
-        .doc-name {
-            font-weight: 500;
-            color: var(--gray-700);
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .doc-count {
-            background: var(--primary-light);
-            color: white;
-            font-size: 12px;
+        .top-bar h1 {
+            font-size: 1.2rem;
             font-weight: 600;
-            padding: 4px 10px;
-            border-radius: 12px;
-            min-width: 24px;
-            text-align: center;
-        }
-
-        /* Contenido Principal */
-        .main-content {
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-        }
-
-        /* Formulario */
-        .form-container {
-            background: white;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow);
-            padding: 32px;
-            border: 1px solid var(--gray-200);
-            animation: slideUp 0.3s ease-out;
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .form-header {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            margin-bottom: 28px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid var(--gray-100);
-        }
-
-        .form-header i {
-            color: var(--primary);
-            font-size: 24px;
-            background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(30, 58, 138, 0.1));
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .form-title {
-            font-size: 22px;
-            font-weight: 700;
-            color: var(--dark);
-        }
-
-        .form-subtitle {
-            color: var(--gray-500);
-            font-size: 14px;
-            margin-top: 4px;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-            margin-bottom: 24px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group.full-width {
-            grid-column: 1 / -1;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: 600;
-            color: var(--gray-700);
-            font-size: 14px;
             display: flex;
             align-items: center;
             gap: 8px;
         }
-
-        .form-input, .form-textarea, .form-select {
-            width: 100%;
-            padding: 14px 16px;
-            border: 2px solid var(--gray-200);
-            border-radius: var(--radius);
-            font-size: 15px;
-            transition: var(--transition);
-            background: white;
-            color: var(--dark);
+        .top-bar h1 small {
+            font-size: 0.7rem;
+            font-weight: 400;
+            opacity: 0.8;
         }
-
-        .form-input:focus, .form-textarea:focus, .form-select:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-
-        .form-textarea {
-            min-height: 140px;
-            resize: vertical;
-            line-height: 1.6;
-            font-family: inherit;
-        }
-
-        /* Selectores de Prioridad y Estado */
-        .selector-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        .priority-selector, .status-selector {
+        .top-actions {
             display: flex;
-            gap: 10px;
+            gap: 6px;
+            flex-wrap: wrap;
         }
-
-        .priority-option, .status-option {
-            flex: 1;
-            text-align: center;
-            padding: 14px 10px;
-            border: 2px solid var(--gray-200);
-            border-radius: var(--radius);
-            cursor: pointer;
-            transition: var(--transition);
-            font-weight: 600;
-            font-size: 14px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .priority-option::before, .status-option::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            opacity: 0;
-            transition: var(--transition);
-        }
-
-        .priority-option:hover::before, .status-option:hover::before {
-            opacity: 1;
-        }
-
-        .priority-option.selected::before, .status-option.selected::before {
-            opacity: 1;
-        }
-
-        .priority-option.low { color: var(--success); border-color: var(--success); }
-        .priority-option.medium { color: var(--warning); border-color: var(--warning); }
-        .priority-option.high { color: var(--danger); border-color: var(--danger); }
-
-        .priority-option.low::before { background: var(--success); }
-        .priority-option.medium::before { background: var(--warning); }
-        .priority-option.high::before { background: var(--danger); }
-
-        .priority-option.low.selected { background: rgba(16, 185, 129, 0.1); }
-        .priority-option.medium.selected { background: rgba(245, 158, 11, 0.1); }
-        .priority-option.high.selected { background: rgba(239, 68, 68, 0.1); }
-
-        .status-option { border-color: var(--gray-300); color: var(--gray-600); }
-        .status-option.selected { background: var(--primary); color: white; border-color: var(--primary); }
-        .status-option.selected::before { background: var(--primary-light); }
-
-        /* Botones */
-        .form-actions {
-            display: flex;
-            gap: 16px;
-            justify-content: flex-end;
-            margin-top: 32px;
-            padding-top: 24px;
-            border-top: 2px solid var(--gray-100);
-        }
-
-        .btn {
-            padding: 16px 32px;
+        .top-actions .btn {
+            padding: 4px 14px;
+            font-size: 0.8rem;
             border: none;
-            border-radius: var(--radius);
-            font-weight: 600;
-            font-size: 15px;
+            border-radius: 4px;
             cursor: pointer;
-            transition: var(--transition);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+            transition: 0.2s;
+        }
+        .top-actions .btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .top-actions .btn-primary { background: #1e7b4a; }
+        .top-actions .btn-primary:hover { background: #14633b; }
+        .top-actions .btn-danger { background: #b91c1c; }
+        .top-actions .btn-danger:hover { background: #991515; }
+        .top-actions .btn-warning { background: #b45309; }
+        .top-actions .btn-warning:hover { background: #92400e; }
+        .top-actions .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.4); }
+        .top-actions .btn-outline:hover { background: rgba(255,255,255,0.1); }
+
+        /* Filter bar */
+        .filter-bar {
+            background: #fff;
+            padding: 6px 20px;
+            display: flex;
+            flex-wrap: wrap;
             gap: 10px;
-            min-width: 140px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.2);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);
-        }
-
-        .btn-secondary {
-            background: white;
-            color: var(--gray-700);
-            border: 2px solid var(--gray-300);
-        }
-
-        .btn-secondary:hover {
-            background: var(--light);
-            border-color: var(--gray-400);
-        }
-
-        /* Lista de Observaciones */
-        .observations-container {
-            background: white;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow);
-            padding: 32px;
-            border: 1px solid var(--gray-200);
-        }
-
-        .observations-header {
-            display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 28px;
+            border-bottom: 1px solid #d1d5db;
+            flex-shrink: 0;
+        }
+        .filter-bar label {
+            font-weight: 500;
+            font-size: 0.8rem;
+            color: #374151;
+        }
+        .filter-bar select, .filter-bar input {
+            padding: 4px 10px;
+            border-radius: 4px;
+            border: 1px solid #d1d5db;
+            background: #fff;
+            font-size: 0.85rem;
+        }
+        .filter-bar input {
+            min-width: 160px;
+        }
+        .filter-bar .stats {
+            margin-left: auto;
+            font-size: 0.8rem;
+            color: #4b5563;
+        }
+        .filter-bar .btn-add-sign {
+            background: #0b2a45;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 14px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .filter-bar .btn-add-sign:hover {
+            background: #1e4a6b;
         }
 
-        .observations-title {
-            font-size: 22px;
-            font-weight: 700;
-            color: var(--dark);
+        /* Gallery */
+        .gallery-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 16px;
+            background: #f8fafc;
         }
-
-        .filter-indicator {
-            background: linear-gradient(135deg, var(--primary-light), var(--primary));
-            color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .search-box {
-            position: relative;
-            width: 320px;
-        }
-
-        .search-box i {
-            position: absolute;
-            left: 18px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--gray-400);
-            font-size: 16px;
-        }
-
-        .search-box input {
-            width: 100%;
-            padding: 14px 20px 14px 48px;
-            border: 2px solid var(--gray-200);
-            border-radius: var(--radius);
-            font-size: 15px;
-            transition: var(--transition);
-        }
-
-        .search-box input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-
-        /* Grid de Observaciones */
-        .observations-grid {
+        .gallery-grid {
             display: grid;
-            gap: 20px;
-            min-height: 200px;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 10px;
         }
 
-        .observation-card {
-            background: white;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow-sm);
-            border-left: 4px solid var(--primary);
-            padding: 24px;
-            transition: var(--transition);
+        /* Signal card */
+        .signal-card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            padding: 6px 6px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            border: 2px solid transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             position: relative;
-            border: 1px solid var(--gray-200);
-            animation: fadeIn 0.5s ease-out;
         }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .observation-card.new {
-            animation: highlightCard 1s ease;
-        }
-
-        @keyframes highlightCard {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.02); }
-            100% { transform: scale(1); }
-        }
-
-        .observation-card:hover {
+        .signal-card:hover {
             transform: translateY(-2px);
-            box-shadow: var(--shadow);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
         }
-
-        .observation-card.high { border-left-color: var(--danger); }
-        .observation-card.medium { border-left-color: var(--warning); }
-        .observation-card.low { border-left-color: var(--success); }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 16px;
+        .signal-card.selected {
+            border-color: #0b2a45;
+            background: #e6f0fa;
+            box-shadow: 0 0 0 3px rgba(11,42,69,0.2);
         }
-
-        .card-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--dark);
-            margin-bottom: 6px;
-            line-height: 1.3;
+        .signal-card .thumb {
+            width: 100%;
+            aspect-ratio: 1/1;
+            object-fit: contain;
+            background: #f1f5f9;
+            border-radius: 4px;
+            padding: 4px;
+            display: block;
         }
-
-        .card-doc {
-            color: var(--primary);
+        .signal-card .s-name {
+            font-size: 0.7rem;
+            font-weight: 500;
+            line-height: 1.2;
+            margin-top: 4px;
+            color: #1e293b;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .signal-card .s-code {
+            font-size: 0.65rem;
+            color: #64748b;
             font-weight: 600;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            background: #f1f5f9;
+            padding: 0 6px;
+            border-radius: 10px;
+            margin-top: 2px;
         }
-
-        .card-priority {
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .priority-high { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
-        .priority-medium { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
-        .priority-low { background: rgba(16, 185, 129, 0.1); color: var(--success); }
-
-        .card-content {
-            color: var(--gray-700);
-            line-height: 1.6;
-            margin-bottom: 20px;
-            font-size: 15px;
-        }
-
-        .card-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-top: 20px;
-            border-top: 1px solid var(--gray-200);
-            font-size: 13px;
-        }
-
-        .card-date {
-            color: var(--gray-500);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .card-status {
-            padding: 6px 14px;
-            border-radius: 16px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: var(--transition);
-            border: 1px solid transparent;
-        }
-
-        .card-status:hover {
-            transform: scale(1.05);
-        }
-
-        .status-pending { background: rgba(245, 158, 11, 0.1); color: var(--warning); border-color: rgba(245, 158, 11, 0.2); }
-        .status-progress { background: rgba(37, 99, 235, 0.1); color: var(--primary); border-color: rgba(37, 99, 235, 0.2); }
-        .status-completed { background: rgba(16, 185, 129, 0.1); color: var(--success); border-color: rgba(16, 185, 129, 0.2); }
-        .status-cancelled { background: rgba(100, 116, 139, 0.1); color: var(--gray-600); border-color: rgba(100, 116, 139, 0.2); }
-
-        .card-actions {
+        .signal-card .s-type-badge {
             position: absolute;
-            top: 20px;
-            right: 20px;
+            top: 4px;
+            right: 4px;
+            font-size: 0.5rem;
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            padding: 1px 6px;
+            border-radius: 10px;
+            pointer-events: none;
+        }
+        .signal-card .card-actions {
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
             display: flex;
-            gap: 8px;
-            opacity: 0;
-            transition: var(--transition);
+            gap: 4px;
         }
-
-        .observation-card:hover .card-actions {
-            opacity: 1;
-        }
-
-        .action-btn {
-            width: 36px;
-            height: 36px;
+        .signal-card .card-actions button {
+            background: rgba(0,0,0,0.5);
+            color: #fff;
+            border: none;
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: white;
-            border: 1px solid var(--gray-200);
-            color: var(--gray-600);
+            width: 20px;
+            height: 20px;
+            font-size: 11px;
+            line-height: 20px;
+            text-align: center;
             cursor: pointer;
-            transition: var(--transition);
+            transition: 0.2s;
         }
-
-        .action-btn:hover {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
+        .signal-card .card-actions button:hover {
+            background: #0b2a45;
             transform: scale(1.1);
         }
-
-        /* Estado vacío */
-        .empty-state {
-            text-align: center;
-            padding: 60px 40px;
-            color: var(--gray-400);
+        .signal-card .card-actions .del-btn {
+            background: rgba(200,0,0,0.6);
+        }
+        .signal-card .card-actions .del-btn:hover {
+            background: #b91c1c;
         }
 
-        .empty-state i {
-            font-size: 64px;
-            margin-bottom: 24px;
-            opacity: 0.3;
-        }
+        /* Tipos de colores */
+        .signal-card.type-Reglamentación { background: #dbeafe; border-color: #93c5fd; }
+        .signal-card.type-Prevención { background: #fef3c7; border-color: #fcd34d; }
+        .signal-card.type-Información { background: #d1fae5; border-color: #6ee7b7; }
+        .signal-card.type-Ambiental { background: #d4edda; border-color: #8fcf9e; }
+        .signal-card.type-Servicios { background: #fce7f3; border-color: #f9a8d4; }
+        .signal-card.type-Turística { background: #fde68a; border-color: #fbbf24; }
+        .signal-card.type-Reglamentación.selected { border-color: #1d4ed8; }
+        .signal-card.type-Prevención.selected { border-color: #b45309; }
+        .signal-card.type-Información.selected { border-color: #047857; }
+        .signal-card.type-Ambiental.selected { border-color: #15803d; }
+        .signal-card.type-Servicios.selected { border-color: #be185d; }
+        .signal-card.type-Turística.selected { border-color: #d97706; }
 
-        .empty-state h3 {
-            font-size: 20px;
-            color: var(--gray-500);
-            margin-bottom: 12px;
+        /* Register bar fija abajo */
+        .register-bar {
+            background: #fff;
+            border-top: 2px solid #d1d5db;
+            padding: 8px 20px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 8px 16px;
+            flex-shrink: 0;
+            box-shadow: 0 -2px 8px rgba(0,0,0,0.05);
+        }
+        .register-bar .field {
+            display: flex;
+            flex-direction: column;
+            min-width: 80px;
+            flex: 1 1 0;
+        }
+        .register-bar .field label {
+            font-size: 0.65rem;
             font-weight: 600;
+            color: #4b5563;
+            margin-bottom: 1px;
         }
-
-        .empty-state p {
-            font-size: 15px;
-            max-width: 400px;
-            margin: 0 auto;
+        .register-bar .field input,
+        .register-bar .field select,
+        .register-bar .field textarea {
+            padding: 4px 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            background: #fff;
+            width: 100%;
         }
-
-        /* Notificaciones */
-        .notification {
-            position: fixed;
-            top: 24px;
-            right: 24px;
-            padding: 20px 24px;
-            border-radius: var(--radius);
-            background: white;
-            box-shadow: var(--shadow-lg);
+        .register-bar .field textarea {
+            resize: vertical;
+            min-height: 32px;
+            max-height: 50px;
+        }
+        .register-bar .field-ruta { flex: 1.2; }
+        .register-bar .field-progresiva { flex: 1; }
+        .register-bar .field-lado { flex: 0.7; }
+        .register-bar .field-condicion { flex: 0.9; }
+        .register-bar .field-obs { flex: 1.3; }
+        .register-bar .field-seleccion {
+            flex: 0.8;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #0b2a45;
             display: flex;
             align-items: center;
-            gap: 16px;
-            transform: translateX(150%);
-            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            z-index: 1000;
-            min-width: 320px;
-            border-left: 4px solid var(--success);
+            gap: 4px;
         }
-
-        .notification.show {
-            transform: translateX(0);
+        .register-bar .field-seleccion .codigo {
+            background: #dbeafe;
+            padding: 1px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
         }
-
-        .notification-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
+        .register-bar .btn-group {
             display: flex;
+            gap: 6px;
             align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 18px;
+            flex-wrap: wrap;
         }
-
-        .notification.success { border-left-color: var(--success); }
-        .notification.error { border-left-color: var(--danger); }
-        .notification.warning { border-left-color: var(--warning); }
-        .notification.info { border-left-color: var(--primary); }
-
-        .notification.success .notification-icon { background: var(--success); }
-        .notification.error .notification-icon { background: var(--danger); }
-        .notification.warning .notification-icon { background: var(--warning); }
-        .notification.info .notification-icon { background: var(--primary); }
-
-        .notification-content h4 {
-            font-weight: 600;
-            margin-bottom: 4px;
-            color: var(--dark);
-        }
-
-        .notification-content p {
-            font-size: 14px;
-            color: var(--gray-600);
-        }
-
-        /* Botones de acción del header */
-        .action-button {
-            padding: 12px 24px;
+        .register-bar .btn {
+            padding: 5px 16px;
             border: none;
-            border-radius: var(--radius);
+            border-radius: 4px;
             font-weight: 600;
-            font-size: 14px;
             cursor: pointer;
-            transition: var(--transition);
-            display: flex;
+            font-size: 0.8rem;
+            transition: 0.2s;
+            white-space: nowrap;
+        }
+        .register-bar .btn-add {
+            background: #0b2a45;
+            color: #fff;
+        }
+        .register-bar .btn-add:hover {
+            background: #1e4a6b;
+        }
+        .register-bar .btn-clear {
+            background: #e5e7eb;
+            color: #1e293b;
+        }
+        .register-bar .btn-clear:hover {
+            background: #d1d5db;
+        }
+        .register-bar .status-msg {
+            font-size: 0.75rem;
+            color: #16a34a;
+            flex: 0 1 180px;
+        }
+        .register-bar .status-msg.error {
+            color: #dc2626;
+        }
+
+        /* Modales */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
             align-items: center;
-            gap: 8px;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
+            padding: 20px;
+        }
+        .modal-overlay.open {
+            display: flex;
+        }
+        .modal-box {
+            background: #fff;
+            max-width: 95vw;
+            max-height: 85vh;
+            width: 700px;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            overflow: auto;
+        }
+        .modal-box .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-shrink: 0;
+        }
+        .modal-box .modal-header h2 {
+            font-size: 1.2rem;
+        }
+        .modal-box .modal-header .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #6b7280;
+        }
+        .modal-box .modal-header .close-btn:hover {
+            color: #1e293b;
+        }
+        .modal-box .form-group {
+            margin-bottom: 12px;
+        }
+        .modal-box .form-group label {
+            display: block;
+            font-weight: 500;
+            font-size: 0.85rem;
+            margin-bottom: 2px;
+        }
+        .modal-box .form-group input, .modal-box .form-group select {
+            width: 100%;
+            padding: 6px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        .modal-box .form-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .modal-box .form-row .form-group {
+            flex: 1;
+            min-width: 120px;
+        }
+        .modal-box .btn-save {
+            background: #0b2a45;
+            color: #fff;
+            border: none;
+            padding: 8px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .modal-box .btn-save:hover {
+            background: #1e4a6b;
+        }
+        .modal-box .btn-danger {
+            background: #b91c1c;
+            color: #fff;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 4px;
+            cursor: pointer;
         }
 
-        .action-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);
+        /* Tabla resultados */
+        .table-wrap {
+            overflow: auto;
+            flex: 1;
         }
-
-        .action-button.secondary {
-            background: white;
-            color: var(--gray-700);
-            border: 2px solid var(--gray-300);
+        .table-wrap table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.75rem;
         }
-
-        .action-button.secondary:hover {
-            background: var(--light);
-            border-color: var(--gray-400);
+        .table-wrap th {
+            background: #0b2a45;
+            color: #fff;
+            padding: 5px 8px;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            white-space: nowrap;
         }
-
-        /* Responsive */
-        @media (max-width: 1200px) {
-            .container {
-                grid-template-columns: 1fr;
-            }
-            
-            .sidebar {
-                position: static;
-                order: 2;
-            }
-            
-            .main-content {
-                order: 1;
-            }
+        .table-wrap td {
+            padding: 4px 8px;
+            border-bottom: 1px solid #e5e7eb;
+            vertical-align: middle;
+        }
+        .table-wrap tr:hover {
+            background: #f1f5f9;
+        }
+        .table-wrap .btn-del {
+            background: #dc2626;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 2px 10px;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+        .table-wrap .btn-del:hover {
+            background: #b91c1c;
+        }
+        .empty-msg {
+            padding: 30px;
+            text-align: center;
+            color: #6b7280;
         }
 
         @media (max-width: 768px) {
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .selector-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .observations-header {
-                flex-direction: column;
-                gap: 16px;
-                align-items: stretch;
-            }
-            
-            .search-box {
-                width: 100%;
-            }
-            
-            .form-actions {
-                flex-direction: column;
-            }
-            
-            .btn {
-                width: 100%;
-            }
-            
-            .app-header {
-                flex-direction: column;
-                gap: 20px;
-                align-items: stretch;
-            }
-            
-            .header-actions {
-                justify-content: center;
-            }
+            .top-bar h1 { font-size: 1rem; }
+            .filter-bar { padding: 6px 12px; gap: 6px; }
+            .filter-bar input { min-width: 100px; }
+            .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+            .register-bar { flex-direction: column; align-items: stretch; gap: 6px; }
+            .register-bar .field { min-width: unset; }
+            .register-bar .field-seleccion { order: -1; }
+            .register-bar .btn-group { justify-content: flex-end; }
+            .modal-box { max-width: 100vw; max-height: 95vh; padding: 12px; }
         }
-
         @media (max-width: 480px) {
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .priority-selector, .status-selector {
-                flex-direction: column;
-            }
-            
-            .card-header {
-                flex-direction: column;
-                gap: 12px;
-                align-items: flex-start;
-            }
-            
-            .card-meta {
-                flex-direction: column;
-                gap: 12px;
-                align-items: flex-start;
-            }
+            .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
+            .signal-card .s-name { font-size: 0.6rem; }
         }
-
-        /* Estilos para referencias */
-        .reference-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(30, 58, 138, 0.1));
-            color: var(--primary);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
-            margin-top: 12px;
+        .gallery-wrapper::-webkit-scrollbar {
+            width: 6px;
         }
-
-        /* Indicador de sistema activo */
-        .system-indicator {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: white;
-            padding: 12px 20px;
-            border-radius: 20px;
-            box-shadow: var(--shadow);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--success);
-            border: 1px solid var(--gray-200);
-            z-index: 100;
+        .gallery-wrapper::-webkit-scrollbar-track {
+            background: #f1f5f9;
         }
-
-        .indicator-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: var(--success);
-            animation: pulse 1.5s infinite;
+        .gallery-wrapper::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 8px;
         }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-
-        /* Auto-suggestions */
-        .suggestions-box {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border: 1px solid var(--gray-200);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow-lg);
-            z-index: 100;
-            max-height: 200px;
-            overflow-y: auto;
-            margin-top: 4px;
-        }
-
-        .suggestion-item {
-            padding: 12px 16px;
-            cursor: pointer;
-            transition: var(--transition);
-            border-bottom: 1px solid var(--gray-100);
-        }
-
-        .suggestion-item:hover {
-            background: var(--light);
-            color: var(--primary);
-        }
-
-        .suggestion-item:last-child {
-            border-bottom: none;
-        }
-
-        /* Contador de caracteres */
-        .char-counter {
-            text-align: right;
-            font-size: 12px;
-            color: var(--gray-500);
-            margin-top: 6px;
-        }
-
-        .char-counter.warning {
-            color: var(--warning);
-        }
-
-        .char-counter.error {
-            color: var(--danger);
+        .gallery-wrapper::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Header Superior -->
-        <header class="app-header">
-            <div class="header-left">
-                <div class="app-logo">
-                    <div class="logo-icon">
-                        <i class="fas fa-file-contract"></i>
-                    </div>
-                    <div class="logo-text">
-                        <h1>CORRECTECH PRO</h1>
-                        <p>Sistema Profesional de Gestión de Correcciones Técnicas</p>
-                    </div>
-                </div>
-            </div>
-            <div class="header-actions">
-                <button class="action-button" id="exportReportBtn">
-                    <i class="fas fa-file-pdf"></i>
-                    Exportar Reporte
-                </button>
-                <button class="action-button secondary" id="clearAllBtn">
-                    <i class="fas fa-trash-alt"></i>
-                    Limpiar Todo
-                </button>
-                <button class="action-button" id="addExampleBtn">
-                    <i class="fas fa-plus-circle"></i>
-                    Ejemplo
-                </button>
-            </div>
-        </header>
+<div class="app">
 
-        <!-- Panel Lateral -->
-        <aside class="sidebar">
-            <div class="stats-container">
-                <h3 class="section-title"><i class="fas fa-chart-bar"></i> ESTADÍSTICAS</h3>
-                <div class="stats-grid">
-                    <div class="stat-card active" id="statTotal" data-filter="all">
-                        <div class="stat-number" id="totalObservations">0</div>
-                        <div class="stat-label">TOTAL OBSERVACIONES</div>
-                    </div>
-                    <div class="stat-card" id="statPending" data-filter="pending">
-                        <div class="stat-number" id="pendingCount">0</div>
-                        <div class="stat-label">PENDIENTES</div>
-                    </div>
-                    <div class="stat-card" id="statHigh" data-filter="high">
-                        <div class="stat-number" id="highPriorityCount">0</div>
-                        <div class="stat-label">ALTA PRIORIDAD</div>
-                    </div>
-                    <div class="stat-card" id="statDocs" data-filter="documents">
-                        <div class="stat-number" id="documentsCount">0</div>
-                        <div class="stat-label">DOCUMENTOS</div>
-                    </div>
-                </div>
-            </div>
+    <!-- Top bar -->
+    <header class="top-bar">
+        <h1>🚦 Señaléticas <small>registro rápido</small></h1>
+        <div class="top-actions">
+            <button class="btn btn-outline" id="btnVerResultados">📊 Ver registros</button>
+            <button class="btn btn-primary" id="btnExportarExcel">📤 Exportar</button>
+            <button class="btn btn-danger" id="btnEliminarTodos">🗑️ Limpiar</button>
+            <button class="btn btn-warning" id="btnResetCatalogo">↺ Reset</button>
+            <button class="btn btn-outline" id="btnImportarCatalogo">📂 Importar</button>
+            <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none;">
+        </div>
+    </header>
 
-            <div class="quick-filters">
-                <h3 class="section-title"><i class="fas fa-filter"></i> FILTROS RÁPIDOS</h3>
-                <div class="filter-buttons">
-                    <button class="filter-btn" data-filter="all">
-                        <i class="fas fa-list"></i>
-                        Todas las Observaciones
-                    </button>
-                    <button class="filter-btn" data-filter="pending">
-                        <i class="fas fa-clock"></i>
-                        Solo Pendientes
-                    </button>
-                    <button class="filter-btn" data-filter="high">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        Alta Prioridad
-                    </button>
-                    <button class="filter-btn" data-filter="completed">
-                        <i class="fas fa-check-circle"></i>
-                        Completadas
-                    </button>
-                    <button class="filter-btn" data-filter="today">
-                        <i class="fas fa-calendar-day"></i>
-                        De Hoy
-                    </button>
-                </div>
-            </div>
-
-            <div class="recent-docs">
-                <h3 class="section-title"><i class="fas fa-file-alt"></i> DOCUMENTOS RECIENTES</h3>
-                <div class="doc-list" id="recentDocsList">
-                    <div class="empty-state" style="padding: 20px;">
-                        <p style="text-align: center; color: var(--gray-400); font-size: 14px;">
-                            <i class="fas fa-file"></i><br>
-                            No hay documentos registrados
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </aside>
-
-        <!-- Contenido Principal -->
-        <main class="main-content">
-            <!-- Formulario de Observación -->
-            <section class="form-container">
-                <div class="form-header">
-                    <i class="fas fa-edit"></i>
-                    <div>
-                        <h2 class="form-title">NUEVA OBSERVACIÓN TÉCNICA</h2>
-                        <p class="form-subtitle">Registre correcciones, modificaciones y mejoras identificadas</p>
-                    </div>
-                </div>
-
-                <form id="observationForm">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label class="form-label" for="documentName">
-                                <i class="fas fa-file-signature"></i>
-                                Nombre del Documento
-                            </label>
-                            <input type="text" id="documentName" class="form-input" 
-                                   placeholder="Ej. TISUR-1502-042-DWG-00001_B" required>
-                            <div id="documentSuggestions"></div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label" for="observationTitle">
-                                <i class="fas fa-heading"></i>
-                                Título de la Observación
-                            </label>
-                            <input type="text" id="observationTitle" class="form-input" 
-                                   placeholder="Ej. Corrección del NÚMERO DE PLANO PROVEEDOR" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label">
-                                <i class="fas fa-exclamation-circle"></i>
-                                Prioridad
-                            </label>
-                            <div class="priority-selector">
-                                <div class="priority-option low" data-value="low">
-                                    BAJA
-                                </div>
-                                <div class="priority-option medium selected" data-value="medium">
-                                    MEDIA
-                                </div>
-                                <div class="priority-option high" data-value="high">
-                                    ALTA
-                                </div>
-                            </div>
-                            <input type="hidden" id="priority" value="medium">
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label">
-                                <i class="fas fa-tasks"></i>
-                                Estado
-                            </label>
-                            <div class="status-selector">
-                                <div class="status-option selected" data-value="pending">PENDIENTE</div>
-                                <div class="status-option" data-value="progress">EN PROGRESO</div>
-                                <div class="status-option" data-value="completed">COMPLETADO</div>
-                                <div class="status-option" data-value="cancelled">CANCELADO</div>
-                            </div>
-                            <input type="hidden" id="status" value="pending">
-                        </div>
-
-                        <div class="form-group full-width">
-                            <label class="form-label" for="observationDetails">
-                                <i class="fas fa-align-left"></i>
-                                Descripción Detallada
-                                <span style="margin-left: auto; font-size: 12px; color: var(--gray-500);">
-                                    Usa viñetas (•) para organizar la información
-                                </span>
-                            </label>
-                            <textarea id="observationDetails" class="form-textarea" 
-                                      placeholder="Describa detalladamente la observación, cambios necesarios, referencias técnicas, etc." 
-                                      required></textarea>
-                            <div class="char-counter" id="charCounter">0 caracteres</div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label" for="referenceNumber">
-                                <i class="fas fa-hashtag"></i>
-                                Número de Referencia
-                            </label>
-                            <div style="display: flex; gap: 10px;">
-                                <input type="text" id="referenceNumber" class="form-input" 
-                                       placeholder="Auto-generado" readonly style="flex: 1;">
-                                <button type="button" id="generateRefBtn" class="btn-secondary" 
-                                        style="padding: 0 20px; min-width: auto;">
-                                    <i class="fas fa-redo"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label" for="category">
-                                <i class="fas fa-tags"></i>
-                                Categoría
-                            </label>
-                            <select id="category" class="form-select">
-                                <option value="planos">Planos</option>
-                                <option value="memorias">Memorias de Cálculo</option>
-                                <option value="especificaciones">Especificaciones Técnicas</option>
-                                <option value="documentacion">Documentación General</option>
-                                <option value="normativa">Normativa</option>
-                                <option value="otros">Otros</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" id="clearFormBtn">
-                            <i class="fas fa-eraser"></i>
-                            Limpiar Formulario
-                        </button>
-                        <button type="button" class="btn btn-secondary" id="cancelEditBtn" style="display: none;">
-                            <i class="fas fa-times"></i>
-                            Cancelar Edición
-                        </button>
-                        <button type="submit" class="btn btn-primary" id="saveObservationBtn">
-                            <i class="fas fa-save"></i>
-                            GUARDAR OBSERVACIÓN
-                        </button>
-                    </div>
-                </form>
-            </section>
-
-            <!-- Lista de Observaciones -->
-            <section class="observations-container">
-                <div class="observations-header">
-                    <div>
-                        <h2 class="observations-title">OBSERVACIONES REGISTRADAS</h2>
-                        <div class="filter-indicator" id="filterIndicator" style="display: none;">
-                            <i class="fas fa-filter"></i>
-                            <span id="filterText">Mostrando todas las observaciones</span>
-                        </div>
-                    </div>
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="searchInput" placeholder="Buscar observaciones...">
-                    </div>
-                </div>
-
-                <div class="observations-grid" id="observationsList">
-                    <!-- Las observaciones se cargarán aquí dinámicamente -->
-                    <div class="empty-state">
-                        <i class="fas fa-clipboard-list"></i>
-                        <h3>No hay observaciones registradas</h3>
-                        <p>Comience agregando su primera observación utilizando el formulario superior</p>
-                    </div>
-                </div>
-            </section>
-        </main>
+    <!-- Filter bar + botón añadir señal -->
+    <div class="filter-bar">
+        <label>Tipo:</label>
+        <select id="filtroTipo">
+            <option value="todos">Todos</option>
+            <option value="Reglamentación">Reglamentación</option>
+            <option value="Prevención">Prevención</option>
+            <option value="Información">Información</option>
+            <option value="Ambiental">Ambiental</option>
+            <option value="Servicios Generales">Servicios Generales</option>
+            <option value="Turística">Turística</option>
+        </select>
+        <label>Subtipo:</label>
+        <select id="filtroSubtipo"><option value="todos">Todos</option></select>
+        <label>Buscar:</label>
+        <input type="text" id="filtroBusqueda" placeholder="Nombre o código...">
+        <span class="stats" id="contadorSenales">0 señales</span>
+        <button class="btn-add-sign" id="btnAbrirAgregar">➕ Añadir señal</button>
     </div>
 
-    <!-- Notificación -->
-    <div class="notification" id="notification">
-        <div class="notification-icon">
-            <i class="fas fa-check"></i>
+    <!-- Galería -->
+    <div class="gallery-wrapper">
+        <div id="galeria" class="gallery-grid"></div>
+    </div>
+
+    <!-- Barra de registro fija -->
+    <div class="register-bar" id="registerBar">
+        <div class="field field-seleccion">
+            <span>Selección:</span>
+            <span id="senalSeleccionadaNombre" style="font-weight:600;">(ninguna)</span>
+            <span class="codigo" id="senalSeleccionadaCodigo"></span>
         </div>
-        <div class="notification-content">
-            <h4 id="notificationTitle">Éxito</h4>
-            <p id="notificationMessage">Operación realizada correctamente</p>
+        <div class="field field-ruta">
+            <label>RUTA</label>
+            <input type="text" id="inputRuta" placeholder="Ej: PE-1N" value="PE-1N">
+        </div>
+        <div class="field field-progresiva">
+            <label>PROGRESIVA</label>
+            <input type="text" id="inputProgresiva" placeholder="Ej: 12+500">
+        </div>
+        <div class="field field-lado">
+            <label>LADO</label>
+            <select id="inputLado">
+                <option value="Derecho">Derecho</option>
+                <option value="Izquierdo">Izquierdo</option>
+                <option value="Ambos">Ambos</option>
+            </select>
+        </div>
+        <div class="field field-condicion">
+            <label>CONDICIÓN</label>
+            <input type="text" id="inputCondicion" placeholder="Bueno, Dañado...">
+        </div>
+        <div class="field field-obs">
+            <label>OBSERVACIONES</label>
+            <textarea id="inputObservaciones" placeholder="Detalles..."></textarea>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-add" id="btnAgregar">➕ Agregar</button>
+            <button class="btn btn-clear" id="btnLimpiarSeleccion">✖ Deseleccionar</button>
+        </div>
+        <div class="status-msg" id="statusMsg">Listo</div>
+    </div>
+</div>
+
+<!-- Modal de resultados -->
+<div class="modal-overlay" id="modalResultados">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h2>📋 Registros tomados</h2>
+            <button class="close-btn" id="closeModal">&times;</button>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead><tr>
+                    <th>ÍTEM</th><th>RUTA</th><th>PROGRESIVA</th><th>LADO</th>
+                    <th>CÓDIGO</th><th>TIPO</th><th>SUBTIPO</th><th>DESCRIPCIÓN</th>
+                    <th>CONDICIÓN</th><th>OBSERVACIONES</th><th>ACCIONES</th>
+                </tr></thead>
+                <tbody id="tbodyResultados"></tbody>
+            </table>
+            <div id="sinRegistros" class="empty-msg">No hay registros aún.</div>
         </div>
     </div>
+</div>
 
-    <!-- Indicador del Sistema -->
-    <div class="system-indicator">
-        <div class="indicator-dot"></div>
-        <span>Sistema Activo</span>
+<!-- Modal para agregar/editar señal -->
+<div class="modal-overlay" id="modalAgregarSenal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h2 id="modalSenalTitulo">➕ Agregar señal</h2>
+            <button class="close-btn" id="closeModalSenal">&times;</button>
+        </div>
+        <div class="form-group">
+            <label>Nombre de la señal *</label>
+            <input type="text" id="inputNombre" placeholder="Ej: Señal de Pare">
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Código MTC *</label>
+                <input type="text" id="inputCodigo" placeholder="Ej: R-1">
+            </div>
+            <div class="form-group">
+                <label>Tipo de Señal *</label>
+                <select id="inputTipo">
+                    <option value="Reglamentación">Reglamentación</option>
+                    <option value="Prevención">Prevención</option>
+                    <option value="Información">Información</option>
+                    <option value="Ambiental">Ambiental</option>
+                    <option value="Servicios Generales">Servicios Generales</option>
+                    <option value="Turística">Turística</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Subtipo (opcional)</label>
+            <input type="text" id="inputSubtipo" placeholder="Ej: Prioridad, Obligación...">
+        </div>
+        <div style="display:flex; gap:12px; margin-top:8px;">
+            <button class="btn-save" id="btnGuardarSenal">💾 Guardar</button>
+            <button class="btn-danger" id="btnEliminarSenal" style="display:none;">🗑️ Eliminar señal</button>
+        </div>
+        <div id="mensajeModal" style="margin-top:8px; font-size:0.85rem; color:#16a34a;"></div>
     </div>
+</div>
 
-    <script>
-        // ============================================
-        // SISTEMA PROFESIONAL DE GESTIÓN DE CORRECCIONES
-        // ============================================
+<script>
+    // ============================================================
+    // CATÁLOGO INICIAL REDUCIDO (solo los códigos solicitados)
+    // ============================================================
+    const INITIAL_CODES = [
+        "R-66", "R-66A", "P-48", "P-49", "I-6", "I-31B", "R-30F", "P-2B",
+        "SIR-1", "P-2A", "P-53", "I-31", "P-4B", "I-31A", "P-4A", "SA-1",
+        "SA-2", "P-5-1", "P-5-1A", "I-2A", "P-1A", "P-1B", "P-5-2A",
+        "P-5-2B", "P-34"
+    ];
 
-        // Variables globales del sistema
-        const SYSTEM = {
-            observations: [],
-            currentFilter: 'all',
-            editingId: null,
-            nextReference: 1,
-            lastUpdate: Date.now(),
-            documentSuggestions: []
-        };
+    // Mapeo de códigos a datos básicos (nombre y tipo, subtipo por defecto)
+    // Se puede ampliar después, pero aquí están los que usaremos.
+    const INITIAL_DATA = {
+        "R-66": { nombre: "Señal Fin de Zona (Inicio)", tipo: "Reglamentación", subtipo: "Restricción" },
+        "R-66A": { nombre: "Señal Fin de Zona (Fin)", tipo: "Reglamentación", subtipo: "Restricción" },
+        "P-48": { nombre: "Señal Zona de Presencia de Peatones", tipo: "Prevención", subtipo: "Caracteristica Operativa" },
+        "P-49": { nombre: "Señal Zona Escolar", tipo: "Prevención", subtipo: "Caracteristica Operativa" },
+        "I-6": { nombre: "Señal Paradero de Buses", tipo: "Servicios Generales", subtipo: "" },
+        "I-31B": { nombre: "Señal Estacionamiento para Emergencias a 200 m", tipo: "Servicios Generales", subtipo: "" },
+        "R-30F": { nombre: "Señal Velocidad Máxima Permitida en Curva", tipo: "Reglamentación", subtipo: "Restricción" },
+        "P-2B": { nombre: "Señal Curva a la Izquierda", tipo: "Prevención", subtipo: "Curva Horizontal" },
+        "SIR-1": { nombre: "Señal de Identificación con Indicación de Ruta", tipo: "Información", subtipo: "Identificación Vial" },
+        "P-2A": { nombre: "Señal Curva a la Derecha", tipo: "Prevención", subtipo: "Curva Horizontal" },
+        "P-53": { nombre: "Señal Animales en la Vía", tipo: "Prevención", subtipo: "Caracteristica Operativa" },
+        "I-31": { nombre: "Señal Estacionamiento para Emergencias", tipo: "Servicios Generales", subtipo: "" },
+        "P-4B": { nombre: "Señal Curva y Contra-curva a la Izquierda", tipo: "Prevención", subtipo: "Curva Horizontal" },
+        "I-31A": { nombre: "Señal Estacionamiento para Emergencias a 100 m", tipo: "Servicios Generales", subtipo: "" },
+        "P-4A": { nombre: "Señal Curva y Contra-curva a la Derecha", tipo: "Prevención", subtipo: "Curva Horizontal" },
+        "SA-1": { nombre: "Señal Ambiental \"NO DEJE OBSTACULOS EN LA PISTA\"", tipo: "Ambiental", subtipo: "Educativa" },
+        "SA-2": { nombre: "Señal Ambiental \"CONSERVEMOS EL MEDIO AMBIENTE\"", tipo: "Ambiental", subtipo: "Educativa" },
+        "P-5-1": { nombre: "Señal Camino Sinuoso a la Derecha", tipo: "Prevención", subtipo: "Curva Horizontal" },
+        "P-5-1A": { nombre: "Señal Camino Sinuoso a la Izquierda", tipo: "Prevención", subtipo: "Curva Horizontal" },
+        "I-2A": { nombre: "Señal Postes de Kilometraje", tipo: "Información", subtipo: "Identificación Vial" },
+        "P-1A": { nombre: "Señal Curva Pronunciada a la Derecha", tipo: "Prevención", subtipo: "Curva Horizontal" },
+        "P-1B": { nombre: "Señal Curva Pronunciada a la Izquierda", tipo: "Prevención", subtipo: "Curva Horizontal" },
+        "P-5-2A": { nombre: "Señal Curva en “U” a la Derecha", tipo: "Prevención", subtipo: "Curva Horizontal" },
+        "P-5-2B": { nombre: "Señal Curva en “U” a la Izquierda", tipo: "Prevención", subtipo: "Curva Horizontal" },
+        "P-34": { nombre: "Señal Proximidad de Badén", tipo: "Prevención", subtipo: "Superficie de Rodadura" }
+    };
 
-        // CONSTANTES DEL SISTEMA
-        const STORAGE_KEY = 'correctech_professional_system';
-        const MAX_DESCRIPTION_LENGTH = 2000;
-        const DEBOUNCE_DELAY = 300;
+    // ============================================================
+    // ESTADO GLOBAL
+    // ============================================================
+    let catalogo = [];
+    let imagenes = {};
+    let registros = [];
+    let nextId = 1;
+    let selectedCodigo = null;
 
-        // ============================================
-        // INICIALIZACIÓN DEL SISTEMA
-        // ============================================
-
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('🚀 Inicializando Sistema CORRECTECH PRO...');
-            
+    // ============================================================
+    // INICIALIZACIÓN
+    // ============================================================
+    function init() {
+        // Cargar desde localStorage o usar datos iniciales
+        const storedCatalogo = localStorage.getItem('catalogo');
+        if (storedCatalogo) {
+            try { catalogo = JSON.parse(storedCatalogo); } catch(e) { catalogo = buildInitialCatalog(); }
+        } else {
+            catalogo = buildInitialCatalog();
+        }
+        const storedImagenes = localStorage.getItem('imagenes');
+        if (storedImagenes) {
+            try { imagenes = JSON.parse(storedImagenes); } catch(e) { imagenes = {}; }
+        }
+        const storedRegistros = localStorage.getItem('registros');
+        if (storedRegistros) {
             try {
-                // Inicializar componentes
-                initSystem();
-                loadObservations();
-                setupEventListeners();
-                updateUI();
-                
-                // Verificar estado del sistema
-                console.log('✅ Sistema inicializado correctamente');
-                console.log(`📊 Observaciones cargadas: ${SYSTEM.observations.length}`);
-                
-                // Mostrar indicador de sistema activo
-                showNotification('Sistema CORRECTECH PRO iniciado correctamente', 'success');
-                
-            } catch (error) {
-                console.error('❌ Error al inicializar el sistema:', error);
-                showNotification('Error al inicializar el sistema', 'error');
+                registros = JSON.parse(storedRegistros);
+                if (registros.length > 0) nextId = Math.max(...registros.map(r => r.id || 0)) + 1;
+            } catch(e) { registros = []; }
+        }
+        if (catalogo.length === 0) {
+            catalogo = buildInitialCatalog();
+            localStorage.setItem('catalogo', JSON.stringify(catalogo));
+        }
+        renderGaleria();
+        actualizarContadores();
+        llenarSubtipos();
+        actualizarSeleccion();
+        actualizarStatus('Listo', false);
+    }
+
+    function buildInitialCatalog() {
+        const result = [];
+        for (const code of INITIAL_CODES) {
+            const data = INITIAL_DATA[code];
+            if (data) {
+                result.push({
+                    nombre: data.nombre,
+                    codigo: code,
+                    tipo: data.tipo,
+                    subtipo: data.subtipo || ''
+                });
+            } else {
+                // Si falta algún dato, lo ponemos con placeholders
+                result.push({
+                    nombre: `Señal ${code}`,
+                    codigo: code,
+                    tipo: 'Reglamentación',
+                    subtipo: ''
+                });
+            }
+        }
+        return result;
+    }
+
+    // ============================================================
+    // FUNCIONES AUXILIARES
+    // ============================================================
+    function getSubtipos() {
+        const set = new Set();
+        catalogo.forEach(s => { if (s.subtipo && s.subtipo.trim() !== '') set.add(s.subtipo.trim()); });
+        return Array.from(set).sort();
+    }
+
+    function llenarSubtipos() {
+        const sel = document.getElementById('filtroSubtipo');
+        const current = sel.value;
+        sel.innerHTML = '<option value="todos">Todos</option>';
+        getSubtipos().forEach(st => {
+            const opt = document.createElement('option');
+            opt.value = st;
+            opt.textContent = st;
+            sel.appendChild(opt);
+        });
+        sel.value = current;
+    }
+
+    function filtrarSenales() {
+        const tipo = document.getElementById('filtroTipo').value;
+        const subtipo = document.getElementById('filtroSubtipo').value;
+        const busqueda = document.getElementById('filtroBusqueda').value.toLowerCase().trim();
+        return catalogo.filter(s => {
+            if (tipo !== 'todos' && s.tipo !== tipo) return false;
+            if (subtipo !== 'todos' && s.subtipo !== subtipo) return false;
+            if (busqueda) {
+                const nombre = s.nombre.toLowerCase();
+                const codigo = s.codigo.toLowerCase();
+                if (!nombre.includes(busqueda) && !codigo.includes(busqueda)) return false;
+            }
+            return true;
+        });
+    }
+
+    function actualizarContadores() {
+        document.getElementById('contadorSenales').textContent = `${catalogo.length} señales`;
+    }
+
+    function actualizarStatus(msg, error = false) {
+        const el = document.getElementById('statusMsg');
+        el.textContent = msg;
+        el.className = 'status-msg' + (error ? ' error' : '');
+    }
+
+    function actualizarSeleccion() {
+        const nombreEl = document.getElementById('senalSeleccionadaNombre');
+        const codigoEl = document.getElementById('senalSeleccionadaCodigo');
+        if (selectedCodigo) {
+            const s = catalogo.find(s => s.codigo === selectedCodigo);
+            if (s) {
+                nombreEl.textContent = s.nombre;
+                codigoEl.textContent = s.codigo;
+                return;
+            }
+        }
+        nombreEl.textContent = '(ninguna)';
+        codigoEl.textContent = '';
+    }
+
+    // ============================================================
+    // RENDER GALERÍA
+    // ============================================================
+    function renderGaleria() {
+        const filtradas = filtrarSenales();
+        const contenedor = document.getElementById('galeria');
+        contenedor.innerHTML = '';
+        if (filtradas.length === 0) {
+            contenedor.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:30px; color:#6b7280;">No hay señales que coincidan con los filtros.</div>';
+            return;
+        }
+        filtradas.forEach(s => {
+            const card = document.createElement('div');
+            card.className = `signal-card type-${s.tipo.replace(/ /g, '')}`;
+            if (selectedCodigo === s.codigo) card.classList.add('selected');
+
+            const imgSrc = imagenes[s.codigo] || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"%3E%3Crect width="100" height="100" fill="%23f1f5f9"/%3E%3Ctext x="50" y="55" font-size="24" text-anchor="middle" fill="%234b5563"%3E🚦%3C/text%3E%3C/svg%3E';
+
+            card.innerHTML = `
+                <img class="thumb" src="${imgSrc}" alt="${s.nombre}" loading="lazy">
+                <div class="s-name">${s.nombre}</div>
+                <div class="s-code">${s.codigo}</div>
+                <span class="s-type-badge">${s.tipo}</span>
+                <div class="card-actions">
+                    <button class="upload-btn" data-codigo="${s.codigo}" title="Cargar foto">📷</button>
+                    <button class="del-btn" data-codigo="${s.codigo}" title="Eliminar señal">✖</button>
+                </div>
+            `;
+            // Seleccionar al hacer clic en la tarjeta (excepto en botones)
+            card.addEventListener('click', (e) => {
+                if (e.target.closest('.card-actions')) return;
+                selectedCodigo = s.codigo;
+                actualizarSeleccion();
+                renderGaleria();
+                actualizarStatus('Seleccionado: ' + s.nombre, false);
+            });
+            // Botón subir foto
+            const uploadBtn = card.querySelector('.upload-btn');
+            uploadBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const codigo = uploadBtn.dataset.codigo;
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.onchange = (ev) => {
+                    const file = ev.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (e2) => {
+                            imagenes[codigo] = e2.target.result;
+                            localStorage.setItem('imagenes', JSON.stringify(imagenes));
+                            renderGaleria();
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                };
+                input.click();
+            });
+            // Botón eliminar señal
+            const delBtn = card.querySelector('.del-btn');
+            delBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const codigo = delBtn.dataset.codigo;
+                if (confirm(`¿Eliminar la señal "${codigo}" del catálogo?`)) {
+                    eliminarSenal(codigo);
+                }
+            });
+            contenedor.appendChild(card);
+        });
+        actualizarContadores();
+    }
+
+    // ============================================================
+    // GESTIÓN DE CATÁLOGO (agregar/eliminar)
+    // ============================================================
+    function eliminarSenal(codigo) {
+        catalogo = catalogo.filter(s => s.codigo !== codigo);
+        delete imagenes[codigo];
+        localStorage.setItem('catalogo', JSON.stringify(catalogo));
+        localStorage.setItem('imagenes', JSON.stringify(imagenes));
+        if (selectedCodigo === codigo) {
+            selectedCodigo = null;
+            actualizarSeleccion();
+        }
+        llenarSubtipos();
+        renderGaleria();
+        actualizarStatus(`Señal ${codigo} eliminada`, false);
+    }
+
+    function agregarSenal(nombre, codigo, tipo, subtipo) {
+        // Validar que no exista el código
+        if (catalogo.some(s => s.codigo === codigo)) {
+            actualizarStatus('⚠️ Ya existe una señal con ese código', true);
+            return false;
+        }
+        catalogo.push({ nombre, codigo, tipo, subtipo: subtipo || '' });
+        localStorage.setItem('catalogo', JSON.stringify(catalogo));
+        llenarSubtipos();
+        renderGaleria();
+        actualizarStatus(`✅ Señal ${codigo} agregada`, false);
+        return true;
+    }
+
+    function editarSenal(codigoViejo, nombre, codigo, tipo, subtipo) {
+        // Si cambia el código, verificar que no exista otro con ese código
+        if (codigoViejo !== codigo && catalogo.some(s => s.codigo === codigo)) {
+            actualizarStatus('⚠️ Ya existe una señal con ese nuevo código', true);
+            return false;
+        }
+        const index = catalogo.findIndex(s => s.codigo === codigoViejo);
+        if (index === -1) return false;
+        catalogo[index] = { nombre, codigo, tipo, subtipo: subtipo || '' };
+        // Si cambió el código, actualizar imágenes y selección
+        if (codigoViejo !== codigo) {
+            if (imagenes[codigoViejo]) {
+                imagenes[codigo] = imagenes[codigoViejo];
+                delete imagenes[codigoViejo];
+                localStorage.setItem('imagenes', JSON.stringify(imagenes));
+            }
+            if (selectedCodigo === codigoViejo) {
+                selectedCodigo = codigo;
+                actualizarSeleccion();
+            }
+        }
+        localStorage.setItem('catalogo', JSON.stringify(catalogo));
+        llenarSubtipos();
+        renderGaleria();
+        actualizarStatus(`✅ Señal ${codigo} actualizada`, false);
+        return true;
+    }
+
+    // ============================================================
+    // MODAL PARA AGREGAR/EDITAR SEÑAL
+    // ============================================================
+    let editandoCodigo = null; // si es null, es agregar
+
+    function abrirModalAgregar() {
+        editandoCodigo = null;
+        document.getElementById('modalSenalTitulo').textContent = '➕ Agregar señal';
+        document.getElementById('inputNombre').value = '';
+        document.getElementById('inputCodigo').value = '';
+        document.getElementById('inputTipo').value = 'Reglamentación';
+        document.getElementById('inputSubtipo').value = '';
+        document.getElementById('btnEliminarSenal').style.display = 'none';
+        document.getElementById('mensajeModal').textContent = '';
+        document.getElementById('modalAgregarSenal').classList.add('open');
+    }
+
+    function abrirModalEditar(codigo) {
+        const s = catalogo.find(s => s.codigo === codigo);
+        if (!s) return;
+        editandoCodigo = codigo;
+        document.getElementById('modalSenalTitulo').textContent = '✏️ Editar señal';
+        document.getElementById('inputNombre').value = s.nombre;
+        document.getElementById('inputCodigo').value = s.codigo;
+        document.getElementById('inputTipo').value = s.tipo;
+        document.getElementById('inputSubtipo').value = s.subtipo || '';
+        document.getElementById('btnEliminarSenal').style.display = 'inline-block';
+        document.getElementById('mensajeModal').textContent = '';
+        document.getElementById('modalAgregarSenal').classList.add('open');
+    }
+
+    function cerrarModalSenal() {
+        document.getElementById('modalAgregarSenal').classList.remove('open');
+    }
+
+    function guardarSenal() {
+        const nombre = document.getElementById('inputNombre').value.trim();
+        const codigo = document.getElementById('inputCodigo').value.trim();
+        const tipo = document.getElementById('inputTipo').value;
+        const subtipo = document.getElementById('inputSubtipo').value.trim();
+
+        if (!nombre || !codigo || !tipo) {
+            document.getElementById('mensajeModal').textContent = '⚠️ Nombre, Código y Tipo son obligatorios.';
+            document.getElementById('mensajeModal').style.color = '#dc2626';
+            return;
+        }
+
+        if (editandoCodigo) {
+            // Editar
+            if (editarSenal(editandoCodigo, nombre, codigo, tipo, subtipo)) {
+                cerrarModalSenal();
+            } else {
+                document.getElementById('mensajeModal').textContent = '⚠️ Error al actualizar.';
+                document.getElementById('mensajeModal').style.color = '#dc2626';
+            }
+        } else {
+            // Agregar
+            if (agregarSenal(nombre, codigo, tipo, subtipo)) {
+                cerrarModalSenal();
+            } else {
+                document.getElementById('mensajeModal').textContent = '⚠️ Ya existe una señal con ese código.';
+                document.getElementById('mensajeModal').style.color = '#dc2626';
+            }
+        }
+    }
+
+    function eliminarSenalDesdeModal() {
+        if (!editandoCodigo) return;
+        if (confirm(`¿Eliminar la señal "${editandoCodigo}" definitivamente?`)) {
+            eliminarSenal(editandoCodigo);
+            cerrarModalSenal();
+        }
+    }
+
+    // ============================================================
+    // REGISTRO (agregar registro de campo)
+    // ============================================================
+    function agregarRegistro() {
+        if (!selectedCodigo) {
+            actualizarStatus('⚠️ Selecciona una señal primero', true);
+            return;
+        }
+        const ruta = document.getElementById('inputRuta').value.trim();
+        const progresiva = document.getElementById('inputProgresiva').value.trim();
+        const lado = document.getElementById('inputLado').value;
+        const condicion = document.getElementById('inputCondicion').value.trim();
+        const observaciones = document.getElementById('inputObservaciones').value.trim();
+
+        if (!ruta || !progresiva) {
+            actualizarStatus('⚠️ Ruta y Progresiva son obligatorios', true);
+            return;
+        }
+
+        const senal = catalogo.find(s => s.codigo === selectedCodigo);
+        if (!senal) {
+            actualizarStatus('⚠️ Señal no encontrada', true);
+            return;
+        }
+
+        const registro = {
+            id: nextId++,
+            ruta,
+            progresiva,
+            lado,
+            codigo: senal.codigo,
+            tipo: senal.tipo,
+            subtipo: senal.subtipo || '',
+            descripcion: senal.nombre,
+            condicion,
+            observaciones
+        };
+        registros.push(registro);
+        localStorage.setItem('registros', JSON.stringify(registros));
+
+        document.getElementById('inputCondicion').value = '';
+        document.getElementById('inputObservaciones').value = '';
+        actualizarStatus(`✅ Registrado: ${senal.nombre}`, false);
+    }
+
+    function eliminarRegistro(id) {
+        if (!confirm('¿Eliminar este registro?')) return;
+        registros = registros.filter(r => r.id !== id);
+        localStorage.setItem('registros', JSON.stringify(registros));
+        mostrarResultados();
+    }
+
+    function eliminarTodos() {
+        if (!confirm('¿Eliminar TODOS los registros?')) return;
+        registros = [];
+        localStorage.setItem('registros', JSON.stringify(registros));
+        if (document.getElementById('modalResultados').classList.contains('open')) mostrarResultados();
+        actualizarStatus('Todos los registros eliminados', false);
+    }
+
+    function limpiarSeleccion() {
+        selectedCodigo = null;
+        actualizarSeleccion();
+        renderGaleria();
+        actualizarStatus('Selección limpiada', false);
+    }
+
+    // ============================================================
+    // MODAL RESULTADOS
+    // ============================================================
+    function mostrarResultados() {
+        const modal = document.getElementById('modalResultados');
+        modal.classList.add('open');
+        const tbody = document.getElementById('tbodyResultados');
+        const sinReg = document.getElementById('sinRegistros');
+        tbody.innerHTML = '';
+        if (registros.length === 0) {
+            sinReg.style.display = 'block';
+            return;
+        }
+        sinReg.style.display = 'none';
+        registros.forEach((r, idx) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${idx+1}</td>
+                <td>${r.ruta || ''}</td>
+                <td>${r.progresiva || ''}</td>
+                <td>${r.lado || ''}</td>
+                <td>${r.codigo || ''}</td>
+                <td>${r.tipo || ''}</td>
+                <td>${r.subtipo || ''}</td>
+                <td>${r.descripcion || ''}</td>
+                <td>${r.condicion || ''}</td>
+                <td>${r.observaciones || ''}</td>
+                <td><button class="btn-del" data-id="${r.id}">✖</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+        document.querySelectorAll('.btn-del').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const id = parseInt(btn.dataset.id);
+                eliminarRegistro(id);
+            });
+        });
+    }
+
+    function cerrarModalResultados() {
+        document.getElementById('modalResultados').classList.remove('open');
+    }
+
+    // ============================================================
+    // EXPORTAR / IMPORTAR
+    // ============================================================
+    function exportarExcel() {
+        if (registros.length === 0) {
+            alert('No hay registros para exportar.');
+            return;
+        }
+        const data = registros.map((r, idx) => ({
+            'ÍTEM': idx+1,
+            'RUTA': r.ruta || '',
+            'PROGRESIVA': r.progresiva || '',
+            'LADO': r.lado || '',
+            'CÓDIGO MTC': r.codigo || '',
+            'TIPO': r.tipo || '',
+            'SUBTIPO': r.subtipo || '',
+            'DESCRIPCIÓN': r.descripcion || '',
+            'CONDICIÓN': r.condicion || '',
+            'OBSERVACIONES': r.observaciones || ''
+        }));
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Registros');
+        const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+        const blob = new Blob([wbout], { type: 'application/octet-stream' });
+        saveAs(blob, 'registro_senaleticas.xlsx');
+    }
+
+    function importarCatalogo(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const json = XLSX.utils.sheet_to_json(firstSheet);
+                if (json.length === 0) {
+                    actualizarStatus('Archivo vacío', true);
+                    return;
+                }
+                const headers = Object.keys(json[0]);
+                const mapCol = (posibles) => {
+                    for (let h of headers) {
+                        const lower = h.toLowerCase().trim();
+                        for (let p of posibles) {
+                            if (lower === p || lower.includes(p)) return h;
+                        }
+                    }
+                    return null;
+                };
+                const colNombre = mapCol(['nombre', 'nome']);
+                const colCodigo = mapCol(['código', 'codigo', 'code']);
+                const colTipo = mapCol(['tipo', 'type']);
+                const colSubtipo = mapCol(['subtipo', 'sub-tipo', 'sub tipo']);
+
+                if (!colNombre || !colCodigo || !colTipo) {
+                    actualizarStatus('Faltan columnas: Nombre, Código, Tipo', true);
+                    return;
+                }
+                const nuevos = json.map(row => ({
+                    nombre: String(row[colNombre] || '').trim(),
+                    codigo: String(row[colCodigo] || '').trim(),
+                    tipo: String(row[colTipo] || '').trim(),
+                    subtipo: colSubtipo ? String(row[colSubtipo] || '').trim() : ''
+                })).filter(s => s.nombre && s.codigo && s.tipo);
+
+                if (nuevos.length === 0) {
+                    actualizarStatus('No se extrajeron señales válidas', true);
+                    return;
+                }
+                catalogo = nuevos;
+                localStorage.setItem('catalogo', JSON.stringify(catalogo));
+                const codigosExistentes = new Set(catalogo.map(s => s.codigo));
+                Object.keys(imagenes).forEach(key => {
+                    if (!codigosExistentes.has(key)) delete imagenes[key];
+                });
+                localStorage.setItem('imagenes', JSON.stringify(imagenes));
+                llenarSubtipos();
+                renderGaleria();
+                actualizarContadores();
+                actualizarStatus(`✅ Importados ${nuevos.length} señales`, false);
+            } catch(err) {
+                actualizarStatus('Error al leer archivo: ' + err.message, true);
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    function resetCatalogo() {
+        if (!confirm('Restaurar el catálogo inicial (solo las 25 señales) ?')) return;
+        catalogo = buildInitialCatalog();
+        localStorage.setItem('catalogo', JSON.stringify(catalogo));
+        // No borramos las imágenes, pero podrían quedar huérfanas; las dejamos.
+        llenarSubtipos();
+        renderGaleria();
+        actualizarContadores();
+        actualizarStatus('Catálogo restaurado a valores iniciales', false);
+    }
+
+    // ============================================================
+    // EVENTOS
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', () => {
+        init();
+
+        // Filtros
+        document.getElementById('filtroTipo').addEventListener('change', renderGaleria);
+        document.getElementById('filtroSubtipo').addEventListener('change', renderGaleria);
+        document.getElementById('filtroBusqueda').addEventListener('input', renderGaleria);
+
+        // Botones principales
+        document.getElementById('btnAgregar').addEventListener('click', agregarRegistro);
+        document.getElementById('btnLimpiarSeleccion').addEventListener('click', limpiarSeleccion);
+        document.getElementById('btnVerResultados').addEventListener('click', mostrarResultados);
+        document.getElementById('closeModal').addEventListener('click', cerrarModalResultados);
+        document.getElementById('modalResultados').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) cerrarModalResultados();
+        });
+        document.getElementById('btnExportarExcel').addEventListener('click', exportarExcel);
+        document.getElementById('btnEliminarTodos').addEventListener('click', eliminarTodos);
+        document.getElementById('btnResetCatalogo').addEventListener('click', resetCatalogo);
+        document.getElementById('btnImportarCatalogo').addEventListener('click', () => {
+            document.getElementById('fileInput').click();
+        });
+        document.getElementById('fileInput').addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                importarCatalogo(e.target.files[0]);
+                e.target.value = '';
             }
         });
 
-        // ============================================
-        // FUNCIONES DEL SISTEMA
-        // ============================================
+        // Modal de agregar/editar señal
+        document.getElementById('btnAbrirAgregar').addEventListener('click', abrirModalAgregar);
+        document.getElementById('closeModalSenal').addEventListener('click', cerrarModalSenal);
+        document.getElementById('modalAgregarSenal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) cerrarModalSenal();
+        });
+        document.getElementById('btnGuardarSenal').addEventListener('click', guardarSenal);
+        document.getElementById('btnEliminarSenal').addEventListener('click', eliminarSenalDesdeModal);
 
-        function initSystem() {
-            console.log('🔧 Configurando sistema...');
-            
-            // Configurar generador de referencia
-            calculateNextReference();
-            
-            // Configurar contador de caracteres
-            setupCharacterCounter();
-            
-            // Configurar generador de referencia automático
-            document.getElementById('generateRefBtn').addEventListener('click', generateReference);
-            generateReference();
-            
-            // Configurar auto-suggestions
-            setupDocumentSuggestions();
-            
-            console.log('✅ Sistema configurado');
-        }
-
-        function setupEventListeners() {
-            console.log('🔗 Configurando event listeners...');
-            
-            // Formulario
-            document.getElementById('saveObservationBtn').addEventListener('click', saveObservation);
-            document.getElementById('clearFormBtn').addEventListener('click', clearForm);
-            document.getElementById('cancelEditBtn').addEventListener('click', cancelEdit);
-            
-            // Filtros por clic en estadísticas
-            document.querySelectorAll('.stat-card').forEach(card => {
-                card.addEventListener('click', function() {
-                    const filter = this.dataset.filter;
-                    applyFilter(filter);
-                });
-            });
-            
-            // Filtros rápidos
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const filter = this.dataset.filter;
-                    applyFilter(filter);
-                });
-            });
-            
-            // Selectores de prioridad
-            document.querySelectorAll('.priority-option').forEach(option => {
-                option.addEventListener('click', function() {
-                    selectPriority(this.dataset.value);
-                });
-            });
-            
-            // Selectores de estado
-            document.querySelectorAll('.status-option').forEach(option => {
-                option.addEventListener('click', function() {
-                    selectStatus(this.dataset.value);
-                });
-            });
-            
-            // Búsqueda
-            document.getElementById('searchInput').addEventListener('input', debounce(searchObservations, DEBOUNCE_DELAY));
-            
-            // Botones del header
-            document.getElementById('exportReportBtn').addEventListener('click', exportReport);
-            document.getElementById('clearAllBtn').addEventListener('click', confirmClearAll);
-            document.getElementById('addExampleBtn').addEventListener('click', addExampleObservation);
-            
-            // Documentos recientes (delegación de eventos)
-            document.getElementById('recentDocsList').addEventListener('click', function(e) {
-                const docItem = e.target.closest('.doc-item');
-                if (docItem) {
-                    const docName = docItem.querySelector('.doc-name span').textContent;
-                    filterByDocument(docName);
+        // Enter en campos de registro
+        document.querySelectorAll('#inputRuta, #inputProgresiva, #inputCondicion, #inputObservaciones').forEach(el => {
+            el.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    agregarRegistro();
                 }
             });
-            
-            console.log('✅ Event listeners configurados');
-        }
+        });
 
-        function setupCharacterCounter() {
-            const textarea = document.getElementById('observationDetails');
-            const counter = document.getElementById('charCounter');
-            
-            textarea.addEventListener('input', function() {
-                const length = this.value.length;
-                counter.textContent = `${length} caracteres`;
-                
-                // Cambiar color según longitud
-                if (length > MAX_DESCRIPTION_LENGTH * 0.9) {
-                    counter.className = 'char-counter warning';
-                } else if (length > MAX_DESCRIPTION_LENGTH) {
-                    counter.className = 'char-counter error';
-                } else {
-                    counter.className = 'char-counter';
-                }
-            });
-        }
-
-        function setupDocumentSuggestions() {
-            const input = document.getElementById('documentName');
-            const container = document.getElementById('documentSuggestions');
-            
-            input.addEventListener('input', function() {
-                const value = this.value.trim().toLowerCase();
-                if (value.length < 2) {
-                    container.innerHTML = '';
-                    return;
-                }
-                
-                // Obtener sugerencias de documentos existentes
-                const suggestions = getDocumentSuggestions(value);
-                if (suggestions.length > 0) {
-                    showSuggestions(suggestions, container);
-                } else {
-                    container.innerHTML = '';
-                }
-            });
-            
-            // Cerrar sugeriones al hacer clic fuera
-            document.addEventListener('click', function(e) {
-                if (!container.contains(e.target) && e.target !== input) {
-                    container.innerHTML = '';
-                }
-            });
-        }
-
-        function getDocumentSuggestions(searchTerm) {
-            const uniqueDocs = [...new Set(SYSTEM.observations.map(obs => obs.document))];
-            return uniqueDocs
-                .filter(doc => doc.toLowerCase().includes(searchTerm))
-                .slice(0, 5);
-        }
-
-        function showSuggestions(suggestions, container) {
-            container.innerHTML = `
-                <div class="suggestions-box">
-                    ${suggestions.map(doc => `
-                        <div class="suggestion-item" onclick="selectDocumentSuggestion('${escapeHtml(doc)}')">
-                            <i class="fas fa-file-alt" style="color: var(--primary); margin-right: 8px;"></i>
-                            ${escapeHtml(doc)}
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-        }
-
-        function selectDocumentSuggestion(doc) {
-            document.getElementById('documentName').value = doc;
-            document.getElementById('documentSuggestions').innerHTML = '';
-        }
-
-        // ============================================
-        // GESTIÓN DE OBSERVACIONES
-        // ============================================
-
-        function saveObservation() {
-            console.log('💾 Guardando observación...');
-            
-            try {
-                // Obtener datos del formulario
-                const documentName = document.getElementById('documentName').value.trim();
-                const title = document.getElementById('observationTitle').value.trim();
-                const priority = document.getElementById('priority').value;
-                const status = document.getElementById('status').value;
-                const details = document.getElementById('observationDetails').value.trim();
-                const reference = document.getElementById('referenceNumber').value.trim();
-                const category = document.getElementById('category').value;
-                
-                // Validaciones
-                if (!documentName || !title || !details) {
-                    showNotification('Por favor complete todos los campos requeridos', 'warning');
-                    return;
-                }
-                
-                if (details.length > MAX_DESCRIPTION_LENGTH) {
-                    showNotification(`La descripción no puede exceder los ${MAX_DESCRIPTION_LENGTH} caracteres`, 'warning');
-                    return;
-                }
-                
-                // Crear objeto de observación
-                const observation = {
-                    id: SYSTEM.editingId || Date.now(),
-                    document: documentName,
-                    title: title,
-                    priority: priority,
-                    status: status,
-                    details: details,
-                    reference: reference || `REF-${Date.now().toString().slice(-6)}`,
-                    category: category,
-                    createdAt: SYSTEM.editingId ? SYSTEM.observations.find(o => o.id === SYSTEM.editingId).createdAt : new Date().toISOString(),
-                    updatedAt: new Date().toISOString(),
-                    formattedDate: formatDate(new Date()),
-                    isNew: !SYSTEM.editingId
-                };
-                
-                console.log('📝 Observación a guardar:', observation);
-                
-                if (SYSTEM.editingId) {
-                    // Actualizar observación existente
-                    const index = SYSTEM.observations.findIndex(o => o.id === SYSTEM.editingId);
-                    if (index !== -1) {
-                        SYSTEM.observations[index] = observation;
-                        console.log(`✅ Observación ${observation.id} actualizada`);
-                        showNotification('Observación actualizada correctamente', 'success');
-                    }
-                } else {
-                    // Nueva observación
-                    observation.id = Date.now();
-                    observation.isNew = true;
-                    SYSTEM.observations.unshift(observation);
-                    console.log(`✅ Nueva observación ${observation.id} creada`);
-                    showNotification('Observación guardada correctamente', 'success');
-                    
-                    // Actualizar siguiente referencia
-                    if (reference && /^\d+$/.test(reference)) {
-                        SYSTEM.nextReference = Math.max(SYSTEM.nextReference, parseInt(reference) + 1);
-                    }
-                }
-                
-                // Guardar en localStorage
-                saveToStorage();
-                
-                // Actualizar UI
-                clearForm();
-                updateUI();
-                filterObservations();
-                
-                // Generar nueva referencia
-                generateReference();
-                
-                // Scroll a la nueva observación
-                if (!SYSTEM.editingId) {
-                    setTimeout(() => {
-                        const newCard = document.querySelector('.observation-card.new');
-                        if (newCard) {
-                            newCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        }
-                    }, 300);
-                }
-                
-            } catch (error) {
-                console.error('❌ Error al guardar observación:', error);
-                showNotification('Error al guardar la observación', 'error');
-            }
-        }
-
-        function editObservation(id) {
-            console.log(`✏️ Editando observación ${id}...`);
-            
-            try {
-                const observation = SYSTEM.observations.find(o => o.id === id);
-                if (!observation) {
-                    console.error(`❌ Observación ${id} no encontrada`);
-                    return;
-                }
-                
-                SYSTEM.editingId = id;
-                
-                // Llenar formulario con datos de la observación
-                document.getElementById('documentName').value = observation.document;
-                document.getElementById('observationTitle').value = observation.title;
-                document.getElementById('observationDetails').value = observation.details;
-                document.getElementById('referenceNumber').value = observation.reference;
-                document.getElementById('category').value = observation.category;
-                
-                // Seleccionar prioridad y estado
-                selectPriority(observation.priority);
-                selectStatus(observation.status);
-                
-                // Actualizar contador de caracteres
-                document.getElementById('charCounter').textContent = 
-                    `${observation.details.length} caracteres`;
-                
-                // Mostrar botón cancelar
-                document.getElementById('cancelEditBtn').style.display = 'inline-flex';
-                
-                // Cambiar texto del botón guardar
-                document.getElementById('saveObservationBtn').innerHTML = 
-                    '<i class="fas fa-save"></i> ACTUALIZAR OBSERVACIÓN';
-                
-                // Scroll al formulario
-                document.getElementById('observationForm').scrollIntoView({ 
-                    behavior: 'smooth', 
-                    block: 'start' 
-                });
-                
-                showNotification('Modo edición activado', 'info');
-                
-            } catch (error) {
-                console.error('❌ Error al editar observación:', error);
-                showNotification('Error al editar la observación', 'error');
-            }
-        }
-
-        function deleteObservation(id) {
-            console.log(`🗑️ Eliminando observación ${id}...`);
-            
-            if (!confirm('¿Está seguro de eliminar esta observación?\nEsta acción no se puede deshacer.')) {
-                return;
-            }
-            
-            try {
-                const initialLength = SYSTEM.observations.length;
-                SYSTEM.observations = SYSTEM.observations.filter(o => o.id !== id);
-                
-                if (SYSTEM.observations.length < initialLength) {
-                    saveToStorage();
-                    updateUI();
-                    filterObservations();
-                    showNotification('Observación eliminada correctamente', 'success');
-                    console.log(`✅ Observación ${id} eliminada`);
-                }
-                
-            } catch (error) {
-                console.error('❌ Error al eliminar observación:', error);
-                showNotification('Error al eliminar la observación', 'error');
-            }
-        }
-
-        function updateStatus(id, newStatus) {
-            console.log(`🔄 Actualizando estado de observación ${id} a ${newStatus}...`);
-            
-            try {
-                const observation = SYSTEM.observations.find(o => o.id === id);
-                if (observation) {
-                    observation.status = newStatus;
-                    observation.updatedAt = new Date().toISOString();
-                    saveToStorage();
-                    updateUI();
-                    filterObservations();
-                    showNotification('Estado actualizado correctamente', 'success');
-                }
-                
-            } catch (error) {
-                console.error('❌ Error al actualizar estado:', error);
-                showNotification('Error al actualizar el estado', 'error');
-            }
-        }
-
-        // ============================================
-        // FUNCIONES DEL FORMULARIO
-        // ============================================
-
-        function clearForm() {
-            console.log('🧹 Limpiando formulario...');
-            
-            SYSTEM.editingId = null;
-            
-            // Resetear valores
-            document.getElementById('observationForm').reset();
-            document.getElementById('priority').value = 'medium';
-            document.getElementById('status').value = 'pending';
-            document.getElementById('category').value = 'planos';
-            
-            // Resetear selectores UI
-            selectPriority('medium');
-            selectStatus('pending');
-            
-            // Restaurar botones
-            document.getElementById('cancelEditBtn').style.display = 'none';
-            document.getElementById('saveObservationBtn').innerHTML = 
-                '<i class="fas fa-save"></i> GUARDAR OBSERVACIÓN';
-            
-            // Limpiar contadores y sugerencias
-            document.getElementById('charCounter').textContent = '0 caracteres';
-            document.getElementById('documentSuggestions').innerHTML = '';
-            
-            // Generar nueva referencia
-            generateReference();
-            
-            // Focus en primer campo
-            document.getElementById('documentName').focus();
-            
-            console.log('✅ Formulario limpiado');
-        }
-
-        function cancelEdit() {
-            console.log('❌ Cancelando edición...');
-            clearForm();
-            showNotification('Edición cancelada', 'info');
-        }
-
-        function selectPriority(priority) {
-            document.querySelectorAll('.priority-option').forEach(option => {
-                option.classList.remove('selected');
-                if (option.dataset.value === priority) {
-                    option.classList.add('selected');
-                }
-            });
-            document.getElementById('priority').value = priority;
-        }
-
-        function selectStatus(status) {
-            document.querySelectorAll('.status-option').forEach(option => {
-                option.classList.remove('selected');
-                if (option.dataset.value === status) {
-                    option.classList.add('selected');
-                }
-            });
-            document.getElementById('status').value = status;
-        }
-
-        function generateReference() {
-            calculateNextReference();
-            document.getElementById('referenceNumber').value = SYSTEM.nextReference.toString();
-        }
-
-        function calculateNextReference() {
-            let maxRef = 0;
-            SYSTEM.observations.forEach(obs => {
-                if (obs.reference && /^\d+$/.test(obs.reference)) {
-                    const refNum = parseInt(obs.reference);
-                    if (refNum > maxRef) {
-                        maxRef = refNum;
-                    }
-                }
-            });
-            SYSTEM.nextReference = maxRef + 1;
-        }
-
-        // ============================================
-        // FILTRADO Y BÚSQUEDA
-        // ============================================
-
-        function applyFilter(filter) {
-            console.log(`🔍 Aplicando filtro: ${filter}`);
-            
-            // Actualizar filtro actual
-            SYSTEM.currentFilter = filter;
-            
-            // Actualizar UI de filtros activos
-            updateActiveFilters();
-            
-            // Aplicar filtro
-            filterObservations();
-            
-            // Actualizar indicador de filtro
-            updateFilterIndicator();
-        }
-
-        function updateActiveFilters() {
-            // Actualizar tarjetas de estadísticas
-            document.querySelectorAll('.stat-card').forEach(card => {
-                card.classList.remove('active');
-                if (card.dataset.filter === SYSTEM.currentFilter) {
-                    card.classList.add('active');
-                }
-            });
-            
-            // Actualizar botones de filtro
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.dataset.filter === SYSTEM.currentFilter) {
-                    btn.classList.add('active');
-                }
-            });
-        }
-
-        function filterObservations() {
-            console.log(`🎯 Filtrando observaciones con: ${SYSTEM.currentFilter}`);
-            
-            let filtered = [...SYSTEM.observations];
-            let filterText = 'Mostrando todas las observaciones';
-            
-            switch(SYSTEM.currentFilter) {
-                case 'pending':
-                    filtered = filtered.filter(o => o.status === 'pending');
-                    filterText = 'Mostrando solo observaciones pendientes';
-                    break;
-                    
-                case 'high':
-                    filtered = filtered.filter(o => o.priority === 'high');
-                    filterText = 'Mostrando solo alta prioridad';
-                    break;
-                    
-                case 'completed':
-                    filtered = filtered.filter(o => o.status === 'completed');
-                    filterText = 'Mostrando solo observaciones completadas';
-                    break;
-                    
-                case 'today':
-                    const today = new Date().toDateString();
-                    filtered = filtered.filter(o => {
-                        const obsDate = new Date(o.createdAt).toDateString();
-                        return obsDate === today;
-                    });
-                    filterText = 'Mostrando observaciones de hoy';
-                    break;
-                    
-                case 'documents':
-                    // Agrupado por documento (se maneja diferente)
-                    renderObservationsByDocument();
-                    return;
-                    
-                default:
-                    // 'all' - mostrar todas
-                    break;
-            }
-            
-            // Renderizar observaciones filtradas
-            renderObservations(filtered);
-            
-            // Actualizar texto del filtro
-            document.getElementById('filterText').textContent = filterText;
-            document.getElementById('filterIndicator').style.display = 'flex';
-        }
-
-        function searchObservations() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
-            
-            if (!searchTerm) {
-                // Si no hay término de búsqueda, volver al filtro actual
-                filterObservations();
-                return;
-            }
-            
-            console.log(`🔎 Buscando: "${searchTerm}"`);
-            
-            const filtered = SYSTEM.observations.filter(obs => 
-                obs.document.toLowerCase().includes(searchTerm) ||
-                obs.title.toLowerCase().includes(searchTerm) ||
-                obs.details.toLowerCase().includes(searchTerm) ||
-                obs.category.toLowerCase().includes(searchTerm) ||
-                (obs.reference && obs.reference.toLowerCase().includes(searchTerm))
-            );
-            
-            renderObservations(filtered);
-            
-            // Actualizar indicador de búsqueda
-            document.getElementById('filterText').textContent = `Búsqueda: "${searchTerm}"`;
-            document.getElementById('filterIndicator').style.display = 'flex';
-        }
-
-        function filterByDocument(documentName) {
-            console.log(`📄 Filtrando por documento: ${documentName}`);
-            
-            SYSTEM.currentFilter = 'document';
-            updateActiveFilters();
-            
-            const filtered = SYSTEM.observations.filter(o => o.document === documentName);
-            renderObservations(filtered);
-            
-            document.getElementById('filterText').textContent = `Documento: ${documentName}`;
-            document.getElementById('filterIndicator').style.display = 'flex';
-        }
-
-        function updateFilterIndicator() {
-            // Esta función se llama cuando cambia el filtro
-            const indicator = document.getElementById('filterIndicator');
-            indicator.style.display = 'flex';
-            
-            // Ocultar después de 5 segundos si no hay búsqueda
-            if (!document.getElementById('searchInput').value) {
-                setTimeout(() => {
-                    if (SYSTEM.currentFilter === 'all') {
-                        indicator.style.display = 'none';
-                    }
-                }, 5000);
-            }
-        }
-
-        // ============================================
-        // RENDERIZADO DE OBSERVACIONES
-        // ============================================
-
-        function renderObservations(observations) {
-            const container = document.getElementById('observationsList');
-            
-            if (!observations || observations.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-clipboard-list"></i>
-                        <h3>No se encontraron observaciones</h3>
-                        <p>${SYSTEM.currentFilter === 'search' ? 
-                            'No hay resultados para su búsqueda' : 
-                            'No hay observaciones con los filtros aplicados'}</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            container.innerHTML = observations.map(obs => `
-                <div class="observation-card ${obs.priority} ${obs.isNew ? 'new' : ''}" data-id="${obs.id}">
-                    <div class="card-actions">
-                        <button class="action-btn" onclick="editObservation(${obs.id})" title="Editar">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="action-btn" onclick="deleteObservation(${obs.id})" title="Eliminar">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                    
-                    <div class="card-header">
-                        <div>
-                            <h3 class="card-title">${escapeHtml(obs.title)}</h3>
-                            <div class="card-doc">
-                                <i class="fas fa-file-alt"></i>
-                                <span>${escapeHtml(obs.document)}</span>
-                            </div>
-                        </div>
-                        <div class="card-priority priority-${obs.priority}">
-                            ${obs.priority === 'high' ? 'ALTA' : obs.priority === 'medium' ? 'MEDIA' : 'BAJA'}
-                        </div>
-                    </div>
-                    
-                    <div class="card-content">
-                        ${formatObservationDetails(obs.details)}
-                        <div class="reference-badge">
-                            <i class="fas fa-hashtag"></i>
-                            <span>REF: ${escapeHtml(obs.reference)}</span>
-                        </div>
-                    </div>
-                    
-                    <div class="card-meta">
-                        <div class="card-date">
-                            <i class="far fa-calendar"></i>
-                            <span>${obs.formattedDate}</span>
-                            <span style="margin-left: 12px;">
-                                <i class="fas fa-tag"></i>
-                                ${getCategoryName(obs.category)}
-                            </span>
-                        </div>
-                        <select class="card-status status-${obs.status}" 
-                                onchange="updateStatus(${obs.id}, this.value)"
-                                title="Cambiar estado">
-                            <option value="pending" ${obs.status === 'pending' ? 'selected' : ''}>PENDIENTE</option>
-                            <option value="progress" ${obs.status === 'progress' ? 'selected' : ''}>EN PROGRESO</option>
-                            <option value="completed" ${obs.status === 'completed' ? 'selected' : ''}>COMPLETADO</option>
-                            <option value="cancelled" ${obs.status === 'cancelled' ? 'selected' : ''}>CANCELADO</option>
-                        </select>
-                    </div>
-                </div>
-            `).join('');
-            
-            // Remover marca de "nuevo" después de un tiempo
-            setTimeout(() => {
-                observations.forEach(obs => {
-                    if (obs.isNew) obs.isNew = false;
-                });
-                saveToStorage();
-            }, 2000);
-        }
-
-        function renderObservationsByDocument() {
-            const container = document.getElementById('observationsList');
-            
-            // Agrupar por documento
-            const docs = {};
-            SYSTEM.observations.forEach(obs => {
-                if (!docs[obs.document]) {
-                    docs[obs.document] = [];
-                }
-                docs[obs.document].push(obs);
-            });
-            
-            if (Object.keys(docs).length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-folder-open"></i>
-                        <h3>No hay documentos registrados</h3>
-                        <p>Comience agregando su primera observación</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            let html = '';
-            Object.entries(docs).forEach(([docName, docObservations]) => {
-                html += `
-                    <div style="margin-bottom: 30px; padding: 20px; background: var(--light); border-radius: var(--radius); border: 1px solid var(--gray-200);">
-                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid var(--gray-200);">
-                            <i class="fas fa-folder" style="color: var(--primary); font-size: 24px;"></i>
-                            <h3 style="font-size: 18px; font-weight: 700; color: var(--dark); margin: 0;">${escapeHtml(docName)}</h3>
-                            <span style="margin-left: auto; background: var(--primary); color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
-                                ${docObservations.length} observaciones
-                            </span>
-                        </div>
-                        <div style="display: grid; gap: 16px;">
-                `;
-                
-                docObservations.forEach(obs => {
-                    html += `
-                        <div class="observation-card ${obs.priority}" style="margin: 0;">
-                            <div class="card-header">
-                                <div>
-                                    <h3 class="card-title">${escapeHtml(obs.title)}</h3>
-                                    <div class="reference-badge" style="margin-top: 8px;">
-                                        <i class="fas fa-hashtag"></i>
-                                        <span>REF: ${escapeHtml(obs.reference)}</span>
-                                    </div>
-                                </div>
-                                <div class="card-priority priority-${obs.priority}">
-                                    ${obs.priority === 'high' ? 'ALTA' : obs.priority === 'medium' ? 'MEDIA' : 'BAJA'}
-                                </div>
-                            </div>
-                            <div class="card-content">
-                                ${formatObservationDetails(obs.details).substring(0, 200)}...
-                            </div>
-                            <div class="card-meta">
-                                <div class="card-date">
-                                    <i class="far fa-calendar"></i>
-                                    <span>${obs.formattedDate}</span>
-                                </div>
-                                <select class="card-status status-${obs.status}" 
-                                        onchange="updateStatus(${obs.id}, this.value)">
-                                    <option value="pending" ${obs.status === 'pending' ? 'selected' : ''}>PENDIENTE</option>
-                                    <option value="progress" ${obs.status === 'progress' ? 'selected' : ''}>EN PROGRESO</option>
-                                    <option value="completed" ${obs.status === 'completed' ? 'selected' : ''}>COMPLETADO</option>
-                                    <option value="cancelled" ${obs.status === 'cancelled' ? 'selected' : ''}>CANCELADO</option>
-                                </select>
-                            </div>
-                        </div>
-                    `;
-                });
-                
-                html += `
-                        </div>
-                    </div>
-                `;
-            });
-            
-            container.innerHTML = html;
-            
-            document.getElementById('filterText').textContent = 'Agrupado por documento';
-            document.getElementById('filterIndicator').style.display = 'flex';
-        }
-
-        // ============================================
-        // GESTIÓN DE DATOS (STORAGE)
-        // ============================================
-
-        function loadObservations() {
-            console.log('📂 Cargando observaciones desde localStorage...');
-            
-            try {
-                const saved = localStorage.getItem(STORAGE_KEY);
-                if (saved) {
-                    SYSTEM.observations = JSON.parse(saved);
-                    console.log(`✅ ${SYSTEM.observations.length} observaciones cargadas`);
-                } else {
-                    SYSTEM.observations = [];
-                    console.log('ℹ️ No hay observaciones guardadas previamente');
-                }
-                
-            } catch (error) {
-                console.error('❌ Error al cargar observaciones:', error);
-                SYSTEM.observations = [];
-                showNotification('Error al cargar datos guardados', 'error');
-            }
-        }
-
-        function saveToStorage() {
-            console.log('💾 Guardando en localStorage...');
-            
-            try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(SYSTEM.observations));
-                SYSTEM.lastUpdate = Date.now();
-                console.log('✅ Datos guardados correctamente');
-                
-            } catch (error) {
-                console.error('❌ Error al guardar en localStorage:', error);
-                showNotification('Error al guardar datos', 'error');
-            }
-        }
-
-        function confirmClearAll() {
-            if (!confirm('¿Está seguro de eliminar TODAS las observaciones?\nEsta acción no se puede deshacer.')) {
-                return;
-            }
-            
-            SYSTEM.observations = [];
-            saveToStorage();
-            updateUI();
-            clearForm();
-            showNotification('Todas las observaciones han sido eliminadas', 'success');
-        }
-
-        // ============================================
-        // ACTUALIZACIÓN DE UI
-        // ============================================
-
-        function updateUI() {
-            console.log('🔄 Actualizando interfaz de usuario...');
-            
-            // Calcular estadísticas
-            const total = SYSTEM.observations.length;
-            const pending = SYSTEM.observations.filter(o => o.status === 'pending').length;
-            const highPriority = SYSTEM.observations.filter(o => o.priority === 'high').length;
-            const documents = [...new Set(SYSTEM.observations.map(o => o.document))].length;
-            
-            // Actualizar estadísticas
-            updateStat('totalObservations', total);
-            updateStat('pendingCount', pending);
-            updateStat('highPriorityCount', highPriority);
-            updateStat('documentsCount', documents);
-            
-            // Actualizar lista de documentos recientes
-            updateRecentDocuments();
-            
-            // Aplicar filtro actual
-            filterObservations();
-            
-            console.log('✅ UI actualizada');
-        }
-
-        function updateStat(elementId, value) {
-            const element = document.getElementById(elementId);
-            const currentValue = parseInt(element.textContent) || 0;
-            
-            if (currentValue !== value) {
-                // Animación de cambio
-                element.style.transform = 'scale(1.2)';
-                element.style.color = 'var(--primary)';
-                setTimeout(() => {
-                    element.style.transform = 'scale(1)';
-                    element.style.color = '';
-                }, 300);
-            }
-            
-            element.textContent = value;
-        }
-
-        function updateRecentDocuments() {
-            const container = document.getElementById('recentDocsList');
-            const uniqueDocs = [...new Set(SYSTEM.observations.map(o => o.document))];
-            
-            if (uniqueDocs.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state" style="padding: 20px;">
-                        <p style="text-align: center; color: var(--gray-400); font-size: 14px;">
-                            <i class="fas fa-file"></i><br>
-                            No hay documentos registrados
-                        </p>
-                    </div>
-                `;
-                return;
-            }
-            
-            let html = '';
-            uniqueDocs.slice(0, 8).forEach(doc => {
-                const count = SYSTEM.observations.filter(o => o.document === doc).length;
-                html += `
-                    <div class="doc-item">
-                        <div class="doc-name">
-                            <i class="fas fa-file-alt"></i>
-                            <span>${escapeHtml(doc)}</span>
-                        </div>
-                        <div class="doc-count">${count}</div>
-                    </div>
-                `;
-            });
-            
-            container.innerHTML = html;
-        }
-
-        // ============================================
-        // FUNCIONALIDADES ADICIONALES
-        // ============================================
-
-        function addExampleObservation() {
-            console.log('➕ Agregando observación de ejemplo...');
-            
-            const example = {
-                id: Date.now(),
-                document: "TISUR-1502-042-DWG-00001_B",
-                title: "Corrección del NÚMERO DE PLANO PROVEEDOR",
-                priority: "medium",
-                status: "completed",
-                details: "• Se modificó el numero de plano del proveedor\n• De \"006CIV24-1502-042-DWG-00003\"\n• A \"006CIV24-1502-042-DWG-00001\"",
-                reference: "1",
-                category: "planos",
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                formattedDate: formatDate(new Date()),
-                isNew: true
-            };
-            
-            SYSTEM.observations.unshift(example);
-            saveToStorage();
-            updateUI();
-            filterObservations();
-            
-            showNotification('Observación de ejemplo agregada', 'success');
-        }
-
-        function exportReport() {
-            console.log('📄 Generando reporte PDF...');
-            
-            try {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
-                
-                // Título
-                doc.setFontSize(24);
-                doc.setTextColor(30, 58, 138);
-                doc.setFont('helvetica', 'bold');
-                doc.text('REPORTE DE CORRECCIONES TÉCNICAS', 105, 20, { align: 'center' });
-                
-                // Subtítulo
-                doc.setFontSize(11);
-                doc.setTextColor(100, 116, 139);
-                doc.setFont('helvetica', 'normal');
-                doc.text(`Generado: ${new Date().toLocaleDateString('es-ES', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                })}`, 105, 30, { align: 'center' });
-                
-                let yPos = 50;
-                
-                // Estadísticas
-                doc.setFontSize(16);
-                doc.setTextColor(30, 41, 59);
-                doc.setFont('helvetica', 'bold');
-                doc.text('RESUMEN ESTADÍSTICO', 20, yPos);
-                yPos += 10;
-                
-                const stats = {
-                    total: SYSTEM.observations.length,
-                    pending: SYSTEM.observations.filter(o => o.status === 'pending').length,
-                    high: SYSTEM.observations.filter(o => o.priority === 'high').length,
-                    documents: [...new Set(SYSTEM.observations.map(o => o.document))].length
-                };
-                
-                doc.setFontSize(10);
-                doc.setTextColor(71, 85, 105);
-                doc.setFont('helvetica', 'normal');
-                
-                doc.text(`• Total observaciones: ${stats.total}`, 20, yPos);
-                yPos += 7;
-                doc.text(`• Pendientes: ${stats.pending}`, 20, yPos);
-                yPos += 7;
-                doc.text(`• Alta prioridad: ${stats.high}`, 20, yPos);
-                yPos += 7;
-                doc.text(`• Documentos: ${stats.documents}`, 20, yPos);
-                yPos += 15;
-                
-                // Observaciones detalladas
-                doc.setFontSize(16);
-                doc.setTextColor(30, 41, 59);
-                doc.setFont('helvetica', 'bold');
-                doc.text('OBSERVACIONES DETALLADAS', 20, yPos);
-                yPos += 10;
-                
-                SYSTEM.observations.forEach((obs, index) => {
-                    if (yPos > 270) {
-                        doc.addPage();
-                        yPos = 20;
-                    }
-                    
-                    // Título
-                    doc.setFontSize(12);
-                    doc.setTextColor(30, 58, 138);
-                    doc.setFont('helvetica', 'bold');
-                    
-                    const titleLines = doc.splitTextToSize(`${index + 1}. ${obs.title}`, 170);
-                    titleLines.forEach(line => {
-                        doc.text(line, 20, yPos);
-                        yPos += 7;
-                    });
-                    
-                    // Documento y referencia
-                    doc.setFontSize(10);
-                    doc.setTextColor(59, 130, 246);
-                    doc.setFont('helvetica', 'bold');
-                    doc.text(`Documento: ${obs.document}`, 20, yPos);
-                    doc.text(`Referencia: ${obs.reference}`, 120, yPos);
-                    yPos += 7;
-                    
-                    // Detalles
-                    doc.setFontSize(9);
-                    doc.setTextColor(71, 85, 105);
-                    doc.setFont('helvetica', 'normal');
-                    
-                    const details = obs.details.split('\n');
-                    details.forEach(detail => {
-                        const trimmed = detail.trim();
-                        if (trimmed) {
-                            if (yPos > 280) {
-                                doc.addPage();
-                                yPos = 20;
-                            }
-                            
-                            const lines = doc.splitTextToSize(`• ${trimmed}`, 170);
-                            lines.forEach(line => {
-                                doc.text(line, 20, yPos);
-                                yPos += 5;
-                            });
-                        }
-                    });
-                    
-                    // Metadatos
-                    yPos += 3;
-                    doc.setFontSize(8);
-                    doc.setTextColor(148, 163, 184);
-                    doc.text(`Fecha: ${new Date(obs.createdAt).toLocaleDateString('es-ES')} | Estado: ${getStatusName(obs.status)} | Prioridad: ${obs.priority === 'high' ? 'Alta' : obs.priority === 'medium' ? 'Media' : 'Baja'}`, 20, yPos);
-                    yPos += 10;
-                    
-                    // Línea separadora
-                    if (index < SYSTEM.observations.length - 1) {
-                        doc.setDrawColor(226, 232, 240);
-                        doc.line(20, yPos, 190, yPos);
-                        yPos += 10;
-                    }
-                });
-                
-                // Footer
-                doc.setFontSize(8);
-                doc.setTextColor(148, 163, 184);
-                doc.text(
-                    'Sistema CORRECTECH PRO - Gestión Profesional de Correcciones Técnicas',
-                    105,
-                    doc.internal.pageSize.getHeight() - 10,
-                    { align: 'center' }
-                );
-                
-                // Guardar PDF
-                const fileName = `reporte-correcciones-${new Date().toISOString().slice(0,10)}.pdf`;
-                doc.save(fileName);
-                
-                showNotification(`Reporte PDF generado: ${fileName}`, 'success');
-                
-            } catch (error) {
-                console.error('❌ Error al generar reporte:', error);
-                showNotification('Error al generar el reporte PDF', 'error');
-            }
-        }
-
-        // ============================================
-        // FUNCIONES UTILITARIAS
-        // ============================================
-
-        function showNotification(message, type = 'success') {
-            const notification = document.getElementById('notification');
-            const title = document.getElementById('notificationTitle');
-            const msg = document.getElementById('notificationMessage');
-            const icon = notification.querySelector('.notification-icon i');
-            
-            // Configurar según tipo
-            notification.className = `notification ${type}`;
-            
-            switch(type) {
-                case 'success':
-                    title.textContent = 'Éxito';
-                    icon.className = 'fas fa-check';
-                    break;
-                case 'error':
-                    title.textContent = 'Error';
-                    icon.className = 'fas fa-exclamation-triangle';
-                    break;
-                case 'warning':
-                    title.textContent = 'Advertencia';
-                    icon.className = 'fas fa-exclamation-circle';
-                    break;
-                case 'info':
-                    title.textContent = 'Información';
-                    icon.className = 'fas fa-info-circle';
-                    break;
-            }
-            
-            msg.textContent = message;
-            
-            // Mostrar
-            notification.classList.add('show');
-            
-            // Ocultar después de 4 segundos
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 4000);
-        }
-
-        function formatObservationDetails(details) {
-            let formatted = escapeHtml(details);
-            formatted = formatted.replace(/^[•\-\*]\s*(.+)$/gm, '<li>$1</li>');
-            
-            if (formatted.includes('<li>')) {
-                formatted = formatted.replace(/(<li>.*<\/li>)/gs, '<ul style="margin: 10px 0; padding-left: 20px;">$1</ul>');
-            }
-            
-            formatted = formatted.replace(/\n/g, '<br>');
-            return formatted;
-        }
-
-        function formatDate(date) {
-            return date.toLocaleDateString('es-ES', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-        }
-
-        function getCategoryName(category) {
-            const categories = {
-                'planos': 'Planos',
-                'memorias': 'Memorias',
-                'especificaciones': 'Especificaciones',
-                'documentacion': 'Documentación',
-                'normativa': 'Normativa',
-                'otros': 'Otros'
-            };
-            return categories[category] || category;
-        }
-
-        function getStatusName(status) {
-            const statuses = {
-                'pending': 'Pendiente',
-                'progress': 'En Progreso',
-                'completed': 'Completado',
-                'cancelled': 'Cancelado'
-            };
-            return statuses[status] || status;
-        }
-
-        function debounce(func, wait) {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        // ============================================
-        // INICIALIZACIÓN FINAL
-        // ============================================
-
-        console.log('🎯 Sistema CORRECTECH PRO listo para usar');
-        console.log('==========================================');
-
-    </script>
+        // Doble clic en tarjeta para editar (opcional) - lo dejamos como extra
+        document.getElementById('galeria').addEventListener('dblclick', (e) => {
+            const card = e.target.closest('.signal-card');
+            if (!card) return;
+            const codigo = card.querySelector('.s-code')?.textContent;
+            if (codigo) abrirModalEditar(codigo);
+        });
+    });
+</script>
 </body>
 </html>
