@@ -127,14 +127,12 @@
             padding: 12px 16px;
             background: #f8fafc;
         }
-        /* Contenedor principal en columna para las secciones */
         #galeria {
             display: flex;
             flex-direction: column;
             gap: 16px;
         }
 
-        /* Cada sección de tipo */
         .section-group {
             width: 100%;
         }
@@ -155,14 +153,12 @@
             color: #64748b;
         }
 
-        /* Grid de tarjetas dentro de cada sección */
         .gallery-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
             gap: 10px;
         }
 
-        /* Signal card */
         .signal-card {
             background: #fff;
             border-radius: 8px;
@@ -257,7 +253,6 @@
             background: #b91c1c;
         }
 
-        /* Colores por tipo de señal (solo bordes y fondos ligeros) */
         .signal-card.type-Reglamentación { background: #dbeafe; border-color: #93c5fd; }
         .signal-card.type-Prevención { background: #fef3c7; border-color: #fcd34d; }
         .signal-card.type-Información { background: #d1fae5; border-color: #6ee7b7; }
@@ -386,8 +381,8 @@
         .modal-box {
             background: #fff;
             max-width: 95vw;
-            max-height: 85vh;
-            width: 700px;
+            max-height: 90vh;
+            width: 1200px; /* más ancho para la tabla */
             border-radius: 12px;
             padding: 20px;
             display: flex;
@@ -403,12 +398,12 @@
             flex-shrink: 0;
         }
         .modal-box .modal-header h2 {
-            font-size: 1.2rem;
+            font-size: 1.4rem;
         }
         .modal-box .modal-header .close-btn {
             background: none;
             border: none;
-            font-size: 1.8rem;
+            font-size: 2rem;
             cursor: pointer;
             color: #6b7280;
         }
@@ -461,29 +456,31 @@
             cursor: pointer;
         }
 
-        /* Tabla resultados */
+        /* Tabla de resultados - más grande */
         .table-wrap {
             overflow: auto;
             flex: 1;
+            font-size: 0.95rem; /* fuente más grande */
         }
         .table-wrap table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.75rem;
         }
         .table-wrap th {
             background: #0b2a45;
             color: #fff;
-            padding: 5px 8px;
+            padding: 10px 12px;
             position: sticky;
             top: 0;
             z-index: 2;
             white-space: nowrap;
+            font-size: 0.9rem;
         }
         .table-wrap td {
-            padding: 4px 8px;
+            padding: 8px 12px;
             border-bottom: 1px solid #e5e7eb;
             vertical-align: middle;
+            font-size: 0.9rem;
         }
         .table-wrap tr:hover {
             background: #f1f5f9;
@@ -493,9 +490,9 @@
             color: #fff;
             border: none;
             border-radius: 4px;
-            padding: 2px 10px;
+            padding: 4px 14px;
             cursor: pointer;
-            font-size: 0.7rem;
+            font-size: 0.8rem;
         }
         .table-wrap .btn-del:hover {
             background: #b91c1c;
@@ -504,6 +501,7 @@
             padding: 30px;
             text-align: center;
             color: #6b7280;
+            font-size: 1.1rem;
         }
 
         @media (max-width: 768px) {
@@ -516,6 +514,8 @@
             .register-bar .field-seleccion { order: -1; }
             .register-bar .btn-group { justify-content: flex-end; }
             .modal-box { max-width: 100vw; max-height: 95vh; padding: 12px; }
+            .table-wrap { font-size: 0.8rem; }
+            .table-wrap th, .table-wrap td { padding: 6px 8px; }
         }
         @media (max-width: 480px) {
             .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
@@ -595,14 +595,17 @@
         <div class="field field-lado">
             <label>LADO</label>
             <select id="inputLado">
-                <option value="Derecho">Derecho</option>
                 <option value="Izquierdo">Izquierdo</option>
-                <option value="Ambos">Ambos</option>
+                <option value="Derecho">Derecho</option>
             </select>
         </div>
         <div class="field field-condicion">
             <label>CONDICIÓN</label>
-            <input type="text" id="inputCondicion" placeholder="Bueno, Dañado...">
+            <select id="inputCondicion">
+                <option value="Señaletica Existente a Cambiar">Señaletica Existente a Cambiar</option>
+                <option value="Señaletica a Conservar">Señaletica a Conservar</option>
+                <option value="Señaletica Nueva">Señaletica Nueva</option>
+            </select>
         </div>
         <div class="field field-obs">
             <label>OBSERVACIONES</label>
@@ -639,7 +642,7 @@
 
 <!-- Modal para agregar/editar señal -->
 <div class="modal-overlay" id="modalAgregarSenal">
-    <div class="modal-box">
+    <div class="modal-box" style="max-width:700px;">
         <div class="modal-header">
             <h2 id="modalSenalTitulo">➕ Agregar señal</h2>
             <button class="close-btn" id="closeModalSenal">&times;</button>
@@ -912,18 +915,15 @@
             return;
         }
 
-        // Agrupar por tipo
         const groups = {};
         filtradas.forEach(s => {
             if (!groups[s.tipo]) groups[s.tipo] = [];
             groups[s.tipo].push(s);
         });
 
-        // Orden de los tipos para mostrar
         const typeOrder = ['Reglamentación', 'Prevención', 'Información', 'Ambiental', 'Servicios Generales', 'Turística'];
         const sortedTypes = Object.keys(groups).sort((a, b) => typeOrder.indexOf(a) - typeOrder.indexOf(b));
 
-        // Íconos para cada tipo
         const typeIcons = {
             'Reglamentación': '🛑',
             'Prevención': '⚠️',
@@ -1095,7 +1095,7 @@
         const ruta = document.getElementById('inputRuta').value.trim();
         const progresiva = document.getElementById('inputProgresiva').value.trim();
         const lado = document.getElementById('inputLado').value;
-        const condicion = document.getElementById('inputCondicion').value.trim();
+        const condicion = document.getElementById('inputCondicion').value;
         const observaciones = document.getElementById('inputObservaciones').value.trim();
 
         if (!ruta || !progresiva) {
@@ -1124,9 +1124,8 @@
         registros.push(registro);
         localStorage.setItem('registros', JSON.stringify(registros));
 
-        document.getElementById('inputCondicion').value = '';
         document.getElementById('inputObservaciones').value = '';
-        actualizarStatus(`✅ Registrado: ${senal.nombre}`, false);
+        actualizarStatus(`✅ Registrado: ${senal.nombre} - ${condicion}`, false);
     }
 
     function eliminarRegistro(id) {
@@ -1152,7 +1151,7 @@
     }
 
     // ============================================================
-    // MODAL RESULTADOS
+    // MODAL RESULTADOS (más grande)
     // ============================================================
     function mostrarResultados() {
         const modal = document.getElementById('modalResultados');
@@ -1330,7 +1329,7 @@
         document.getElementById('btnGuardarSenal').addEventListener('click', guardarSenal);
         document.getElementById('btnEliminarSenal').addEventListener('click', eliminarSenalDesdeModal);
 
-        document.querySelectorAll('#inputRuta, #inputProgresiva, #inputCondicion, #inputObservaciones').forEach(el => {
+        document.querySelectorAll('#inputRuta, #inputProgresiva, #inputObservaciones').forEach(el => {
             el.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     e.preventDefault();
