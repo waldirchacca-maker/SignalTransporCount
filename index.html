@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro de Señaléticas</title>
+    <title>Registro de Señaléticas - por Grupos</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
@@ -120,13 +120,42 @@
             background: #1e4a6b;
         }
 
-        /* Gallery */
+        /* Gallery wrapper */
         .gallery-wrapper {
             flex: 1;
             overflow-y: auto;
             padding: 12px 16px;
             background: #f8fafc;
         }
+        /* Contenedor principal en columna para las secciones */
+        #galeria {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Cada sección de tipo */
+        .section-group {
+            width: 100%;
+        }
+        .section-header {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #0b2a45;
+            border-bottom: 3px solid #d1d5db;
+            padding-bottom: 6px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-header .count {
+            font-size: 0.7rem;
+            font-weight: 400;
+            color: #64748b;
+        }
+
+        /* Grid de tarjetas dentro de cada sección */
         .gallery-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
@@ -228,7 +257,7 @@
             background: #b91c1c;
         }
 
-        /* Tipos de colores */
+        /* Colores por tipo de señal (solo bordes y fondos ligeros) */
         .signal-card.type-Reglamentación { background: #dbeafe; border-color: #93c5fd; }
         .signal-card.type-Prevención { background: #fef3c7; border-color: #fcd34d; }
         .signal-card.type-Información { background: #d1fae5; border-color: #6ee7b7; }
@@ -512,7 +541,7 @@
 
     <!-- Top bar -->
     <header class="top-bar">
-        <h1>🚦 Señaléticas <small>registro rápido</small></h1>
+        <h1>🚦 Señaléticas <small>por grupos</small></h1>
         <div class="top-actions">
             <button class="btn btn-outline" id="btnVerResultados">📊 Ver registros</button>
             <button class="btn btn-primary" id="btnExportarExcel">📤 Exportar</button>
@@ -545,7 +574,7 @@
 
     <!-- Galería -->
     <div class="gallery-wrapper">
-        <div id="galeria" class="gallery-grid"></div>
+        <div id="galeria"></div>
     </div>
 
     <!-- Barra de registro fija -->
@@ -659,8 +688,6 @@
         "P-5-2B", "P-34"
     ];
 
-    // Mapeo de códigos a datos básicos (nombre y tipo, subtipo por defecto)
-    // Se puede ampliar después, pero aquí están los que usaremos.
     const INITIAL_DATA = {
         "R-66": { nombre: "Señal Fin de Zona (Inicio)", tipo: "Reglamentación", subtipo: "Restricción" },
         "R-66A": { nombre: "Señal Fin de Zona (Fin)", tipo: "Reglamentación", subtipo: "Restricción" },
@@ -702,7 +729,6 @@
     // INICIALIZACIÓN
     // ============================================================
     function init() {
-        // Cargar desde localStorage o usar datos iniciales
         const storedCatalogo = localStorage.getItem('catalogo');
         if (storedCatalogo) {
             try { catalogo = JSON.parse(storedCatalogo); } catch(e) { catalogo = buildInitialCatalog(); }
@@ -743,7 +769,6 @@
                     subtipo: data.subtipo || ''
                 });
             } else {
-                // Si falta algún dato, lo ponemos con placeholders
                 result.push({
                     nombre: `Señal ${code}`,
                     codigo: code,
@@ -819,73 +844,114 @@
     }
 
     // ============================================================
-    // RENDER GALERÍA
+    // RENDER GALERÍA (AGRUPADA POR TIPO)
     // ============================================================
+    function createSignalCard(s) {
+        const card = document.createElement('div');
+        card.className = `signal-card type-${s.tipo.replace(/ /g, '')}`;
+        if (selectedCodigo === s.codigo) card.classList.add('selected');
+
+        const imgSrc = imagenes[s.codigo] || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"%3E%3Crect width="100" height="100" fill="%23f1f5f9"/%3E%3Ctext x="50" y="55" font-size="24" text-anchor="middle" fill="%234b5563"%3E🚦%3C/text%3E%3C/svg%3E';
+
+        card.innerHTML = `
+            <img class="thumb" src="${imgSrc}" alt="${s.nombre}" loading="lazy">
+            <div class="s-name">${s.nombre}</div>
+            <div class="s-code">${s.codigo}</div>
+            <span class="s-type-badge">${s.tipo}</span>
+            <div class="card-actions">
+                <button class="upload-btn" data-codigo="${s.codigo}" title="Cargar foto">📷</button>
+                <button class="del-btn" data-codigo="${s.codigo}" title="Eliminar señal">✖</button>
+            </div>
+        `;
+        card.addEventListener('click', (e) => {
+            if (e.target.closest('.card-actions')) return;
+            selectedCodigo = s.codigo;
+            actualizarSeleccion();
+            renderGaleria();
+            actualizarStatus('Seleccionado: ' + s.nombre, false);
+        });
+        const uploadBtn = card.querySelector('.upload-btn');
+        uploadBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const codigo = uploadBtn.dataset.codigo;
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = (ev) => {
+                const file = ev.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e2) => {
+                        imagenes[codigo] = e2.target.result;
+                        localStorage.setItem('imagenes', JSON.stringify(imagenes));
+                        renderGaleria();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+            input.click();
+        });
+        const delBtn = card.querySelector('.del-btn');
+        delBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const codigo = delBtn.dataset.codigo;
+            if (confirm(`¿Eliminar la señal "${codigo}" del catálogo?`)) {
+                eliminarSenal(codigo);
+            }
+        });
+        return card;
+    }
+
     function renderGaleria() {
         const filtradas = filtrarSenales();
         const contenedor = document.getElementById('galeria');
         contenedor.innerHTML = '';
+
         if (filtradas.length === 0) {
-            contenedor.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:30px; color:#6b7280;">No hay señales que coincidan con los filtros.</div>';
+            contenedor.innerHTML = '<div style="text-align:center; padding:30px; color:#6b7280;">No hay señales que coincidan con los filtros.</div>';
             return;
         }
+
+        // Agrupar por tipo
+        const groups = {};
         filtradas.forEach(s => {
-            const card = document.createElement('div');
-            card.className = `signal-card type-${s.tipo.replace(/ /g, '')}`;
-            if (selectedCodigo === s.codigo) card.classList.add('selected');
+            if (!groups[s.tipo]) groups[s.tipo] = [];
+            groups[s.tipo].push(s);
+        });
 
-            const imgSrc = imagenes[s.codigo] || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"%3E%3Crect width="100" height="100" fill="%23f1f5f9"/%3E%3Ctext x="50" y="55" font-size="24" text-anchor="middle" fill="%234b5563"%3E🚦%3C/text%3E%3C/svg%3E';
+        // Orden de los tipos para mostrar
+        const typeOrder = ['Reglamentación', 'Prevención', 'Información', 'Ambiental', 'Servicios Generales', 'Turística'];
+        const sortedTypes = Object.keys(groups).sort((a, b) => typeOrder.indexOf(a) - typeOrder.indexOf(b));
 
-            card.innerHTML = `
-                <img class="thumb" src="${imgSrc}" alt="${s.nombre}" loading="lazy">
-                <div class="s-name">${s.nombre}</div>
-                <div class="s-code">${s.codigo}</div>
-                <span class="s-type-badge">${s.tipo}</span>
-                <div class="card-actions">
-                    <button class="upload-btn" data-codigo="${s.codigo}" title="Cargar foto">📷</button>
-                    <button class="del-btn" data-codigo="${s.codigo}" title="Eliminar señal">✖</button>
-                </div>
-            `;
-            // Seleccionar al hacer clic en la tarjeta (excepto en botones)
-            card.addEventListener('click', (e) => {
-                if (e.target.closest('.card-actions')) return;
-                selectedCodigo = s.codigo;
-                actualizarSeleccion();
-                renderGaleria();
-                actualizarStatus('Seleccionado: ' + s.nombre, false);
+        // Íconos para cada tipo
+        const typeIcons = {
+            'Reglamentación': '🛑',
+            'Prevención': '⚠️',
+            'Información': 'ℹ️',
+            'Ambiental': '🌿',
+            'Servicios Generales': '🛠️',
+            'Turística': '🏖️'
+        };
+
+        sortedTypes.forEach(tipo => {
+            const section = document.createElement('div');
+            section.className = 'section-group';
+
+            const header = document.createElement('div');
+            header.className = 'section-header';
+            header.innerHTML = `${typeIcons[tipo] || '📌'} ${tipo} <span class="count">(${groups[tipo].length})</span>`;
+            section.appendChild(header);
+
+            const grid = document.createElement('div');
+            grid.className = 'gallery-grid';
+
+            groups[tipo].forEach(s => {
+                const card = createSignalCard(s);
+                grid.appendChild(card);
             });
-            // Botón subir foto
-            const uploadBtn = card.querySelector('.upload-btn');
-            uploadBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const codigo = uploadBtn.dataset.codigo;
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.accept = 'image/*';
-                input.onchange = (ev) => {
-                    const file = ev.target.files[0];
-                    if (file) {
-                        const reader = new FileReader();
-                        reader.onload = (e2) => {
-                            imagenes[codigo] = e2.target.result;
-                            localStorage.setItem('imagenes', JSON.stringify(imagenes));
-                            renderGaleria();
-                        };
-                        reader.readAsDataURL(file);
-                    }
-                };
-                input.click();
-            });
-            // Botón eliminar señal
-            const delBtn = card.querySelector('.del-btn');
-            delBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const codigo = delBtn.dataset.codigo;
-                if (confirm(`¿Eliminar la señal "${codigo}" del catálogo?`)) {
-                    eliminarSenal(codigo);
-                }
-            });
-            contenedor.appendChild(card);
+
+            section.appendChild(grid);
+            contenedor.appendChild(section);
         });
         actualizarContadores();
     }
@@ -908,7 +974,6 @@
     }
 
     function agregarSenal(nombre, codigo, tipo, subtipo) {
-        // Validar que no exista el código
         if (catalogo.some(s => s.codigo === codigo)) {
             actualizarStatus('⚠️ Ya existe una señal con ese código', true);
             return false;
@@ -922,7 +987,6 @@
     }
 
     function editarSenal(codigoViejo, nombre, codigo, tipo, subtipo) {
-        // Si cambia el código, verificar que no exista otro con ese código
         if (codigoViejo !== codigo && catalogo.some(s => s.codigo === codigo)) {
             actualizarStatus('⚠️ Ya existe una señal con ese nuevo código', true);
             return false;
@@ -930,7 +994,6 @@
         const index = catalogo.findIndex(s => s.codigo === codigoViejo);
         if (index === -1) return false;
         catalogo[index] = { nombre, codigo, tipo, subtipo: subtipo || '' };
-        // Si cambió el código, actualizar imágenes y selección
         if (codigoViejo !== codigo) {
             if (imagenes[codigoViejo]) {
                 imagenes[codigo] = imagenes[codigoViejo];
@@ -952,7 +1015,7 @@
     // ============================================================
     // MODAL PARA AGREGAR/EDITAR SEÑAL
     // ============================================================
-    let editandoCodigo = null; // si es null, es agregar
+    let editandoCodigo = null;
 
     function abrirModalAgregar() {
         editandoCodigo = null;
@@ -997,7 +1060,6 @@
         }
 
         if (editandoCodigo) {
-            // Editar
             if (editarSenal(editandoCodigo, nombre, codigo, tipo, subtipo)) {
                 cerrarModalSenal();
             } else {
@@ -1005,7 +1067,6 @@
                 document.getElementById('mensajeModal').style.color = '#dc2626';
             }
         } else {
-            // Agregar
             if (agregarSenal(nombre, codigo, tipo, subtipo)) {
                 cerrarModalSenal();
             } else {
@@ -1024,7 +1085,7 @@
     }
 
     // ============================================================
-    // REGISTRO (agregar registro de campo)
+    // REGISTRO
     // ============================================================
     function agregarRegistro() {
         if (!selectedCodigo) {
@@ -1225,7 +1286,6 @@
         if (!confirm('Restaurar el catálogo inicial (solo las 25 señales) ?')) return;
         catalogo = buildInitialCatalog();
         localStorage.setItem('catalogo', JSON.stringify(catalogo));
-        // No borramos las imágenes, pero podrían quedar huérfanas; las dejamos.
         llenarSubtipos();
         renderGaleria();
         actualizarContadores();
@@ -1238,12 +1298,10 @@
     document.addEventListener('DOMContentLoaded', () => {
         init();
 
-        // Filtros
         document.getElementById('filtroTipo').addEventListener('change', renderGaleria);
         document.getElementById('filtroSubtipo').addEventListener('change', renderGaleria);
         document.getElementById('filtroBusqueda').addEventListener('input', renderGaleria);
 
-        // Botones principales
         document.getElementById('btnAgregar').addEventListener('click', agregarRegistro);
         document.getElementById('btnLimpiarSeleccion').addEventListener('click', limpiarSeleccion);
         document.getElementById('btnVerResultados').addEventListener('click', mostrarResultados);
@@ -1264,7 +1322,6 @@
             }
         });
 
-        // Modal de agregar/editar señal
         document.getElementById('btnAbrirAgregar').addEventListener('click', abrirModalAgregar);
         document.getElementById('closeModalSenal').addEventListener('click', cerrarModalSenal);
         document.getElementById('modalAgregarSenal').addEventListener('click', (e) => {
@@ -1273,7 +1330,6 @@
         document.getElementById('btnGuardarSenal').addEventListener('click', guardarSenal);
         document.getElementById('btnEliminarSenal').addEventListener('click', eliminarSenalDesdeModal);
 
-        // Enter en campos de registro
         document.querySelectorAll('#inputRuta, #inputProgresiva, #inputCondicion, #inputObservaciones').forEach(el => {
             el.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
@@ -1283,7 +1339,7 @@
             });
         });
 
-        // Doble clic en tarjeta para editar (opcional) - lo dejamos como extra
+        // Doble clic para editar señal
         document.getElementById('galeria').addEventListener('dblclick', (e) => {
             const card = e.target.closest('.signal-card');
             if (!card) return;
