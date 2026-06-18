@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro de Señaléticas - con orden personalizado</title>
+    <title>Registro de Señaléticas - con edición</title>
     <!-- Librerías para Excel y Sortable -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
@@ -161,7 +161,6 @@
             gap: 10px;
             min-height: 60px;
         }
-        /* Estilo para drag */
         .gallery-grid .sortable-drag {
             opacity: 0.6;
             transform: scale(0.95);
@@ -519,23 +518,39 @@
         .table-wrap tr:hover {
             background: #f1f5f9;
         }
-        .table-wrap .btn-del {
-            background: #dc2626;
-            color: #fff;
+        .table-wrap .btn-action {
+            background: transparent;
             border: none;
-            border-radius: 4px;
-            padding: 4px 14px;
             cursor: pointer;
-            font-size: 0.8rem;
+            font-size: 1.1rem;
+            padding: 2px 6px;
+            transition: 0.2s;
+        }
+        .table-wrap .btn-action:hover {
+            transform: scale(1.2);
+        }
+        .table-wrap .btn-del {
+            color: #dc2626;
         }
         .table-wrap .btn-del:hover {
-            background: #b91c1c;
+            color: #b91c1c;
+        }
+        .table-wrap .btn-edit {
+            color: #0b2a45;
+        }
+        .table-wrap .btn-edit:hover {
+            color: #1e4a6b;
         }
         .empty-msg {
             padding: 30px;
             text-align: center;
             color: #6b7280;
             font-size: 1.1rem;
+        }
+
+        /* Modal de edición de registro */
+        .modal-box.small {
+            max-width: 700px;
         }
 
         @media (max-width: 768px) {
@@ -575,7 +590,7 @@
 
     <!-- Top bar -->
     <header class="top-bar">
-        <h1>🚦 Señaléticas <small>orden personalizado</small></h1>
+        <h1>🚦 Señaléticas <small>con edición</small></h1>
         <div class="top-actions">
             <button class="btn btn-outline" id="btnVerResultados">📊 Ver registros</button>
             <button class="btn btn-primary" id="btnExportarExcel">📤 Exportar</button>
@@ -667,7 +682,8 @@
                     <th class="sortable" id="thProgresiva">PROGRESIVA</th>
                     <th>LADO</th>
                     <th>CÓDIGO</th><th>TIPO</th><th>SUBTIPO</th><th>DESCRIPCIÓN</th>
-                    <th>CONDICIÓN</th><th>OBSERVACIONES</th><th>ACCIONES</th>
+                    <th>CONDICIÓN</th><th>OBSERVACIONES</th>
+                    <th>ACCIONES</th>
                 </tr></thead>
                 <tbody id="tbodyResultados"></tbody>
             </table>
@@ -713,6 +729,56 @@
             <button class="btn-danger" id="btnEliminarSenal" style="display:none;">🗑️ Eliminar señal</button>
         </div>
         <div id="mensajeModal" style="margin-top:8px; font-size:0.85rem; color:#16a34a;"></div>
+    </div>
+</div>
+
+<!-- Modal para editar registro -->
+<div class="modal-overlay" id="modalEditarRegistro">
+    <div class="modal-box small">
+        <div class="modal-header">
+            <h2>✏️ Editar Registro</h2>
+            <button class="close-btn" id="closeModalEditar">&times;</button>
+        </div>
+        <div class="form-group">
+            <label>Señal</label>
+            <select id="editCodigo"></select>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>RUTA</label>
+                <input type="text" id="editRuta" placeholder="Ej: PE-1N">
+            </div>
+            <div class="form-group">
+                <label>PROGRESIVA</label>
+                <input type="text" id="editProgresiva" placeholder="Ej: 12+500">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>LADO</label>
+                <select id="editLado">
+                    <option value="Izquierdo">Izquierdo</option>
+                    <option value="Derecho">Derecho</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>CONDICIÓN</label>
+                <select id="editCondicion">
+                    <option value="Señaletica Existente a Cambiar">Señaletica Existente a Cambiar</option>
+                    <option value="Señaletica a Conservar">Señaletica a Conservar</option>
+                    <option value="Señaletica Nueva">Señaletica Nueva</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>OBSERVACIONES</label>
+            <textarea id="editObservaciones" rows="2" placeholder="Detalles..."></textarea>
+        </div>
+        <div style="display:flex; gap:12px; margin-top:8px;">
+            <button class="btn-save" id="btnGuardarEdicion">💾 Guardar cambios</button>
+            <button class="btn-danger" id="btnEliminarRegistroDesdeEdicion">🗑️ Eliminar registro</button>
+        </div>
+        <div id="mensajeEdicion" style="margin-top:8px; font-size:0.85rem; color:#16a34a;"></div>
     </div>
 </div>
 
@@ -763,14 +829,16 @@
     let registros = [];
     let nextId = 1;
     let selectedCodigo = null;
-    let ordenProgresiva = null; // 'asc' o 'desc'
-    let ordenPersonalizado = {}; // { tipo: [codigo1, codigo2, ...] }
+    let ordenProgresiva = null;
+    let ordenPersonalizado = {};
+
+    // Variable para edición de registro
+    let editandoRegistroId = null;
 
     // ============================================================
     // INICIALIZACIÓN
     // ============================================================
     function init() {
-        // Cargar desde localStorage
         const storedCatalogo = localStorage.getItem('catalogo');
         if (storedCatalogo) {
             try { catalogo = JSON.parse(storedCatalogo); } catch(e) { catalogo = buildInitialCatalog(); }
@@ -801,7 +869,6 @@
         llenarSubtipos();
         actualizarSeleccion();
         actualizarStatus('Listo', false);
-        // Inicializar Sortable en los grids (se llama después de renderizar)
     }
 
     function buildInitialCatalog() {
@@ -891,7 +958,7 @@
     }
 
     // ============================================================
-    // ORDEN PERSONALIZADO (guardar y aplicar)
+    // ORDEN PERSONALIZADO
     // ============================================================
     function guardarOrdenPersonalizado() {
         localStorage.setItem('ordenPersonalizado', JSON.stringify(ordenPersonalizado));
@@ -907,7 +974,6 @@
     function aplicarOrdenPersonalizado(tipo, señales) {
         const orden = obtenerOrdenParaTipo(tipo);
         if (!orden) return señales;
-        // Ordenar según el orden guardado
         const map = new Map(señales.map(s => [s.codigo, s]));
         const ordenados = [];
         for (const codigo of orden) {
@@ -916,7 +982,6 @@
                 map.delete(codigo);
             }
         }
-        // Añadir los que no estaban en el orden (por si acaso)
         for (const [_, s] of map) {
             ordenados.push(s);
         }
@@ -924,7 +989,7 @@
     }
 
     // ============================================================
-    // RENDER GALERÍA (AGRUPADA POR TIPO CON ORDEN PERSONALIZADO)
+    // RENDER GALERÍA
     // ============================================================
     function createSignalCard(s) {
         const card = document.createElement('div');
@@ -993,7 +1058,6 @@
             return;
         }
 
-        // Agrupar por tipo
         const groups = {};
         filtradas.forEach(s => {
             if (!groups[s.tipo]) groups[s.tipo] = [];
@@ -1025,7 +1089,6 @@
             grid.className = 'gallery-grid';
             grid.dataset.tipo = tipo;
 
-            // Aplicar orden personalizado
             let señalesOrdenadas = aplicarOrdenPersonalizado(tipo, groups[tipo]);
             señalesOrdenadas.forEach(s => {
                 const card = createSignalCard(s);
@@ -1037,36 +1100,26 @@
         });
 
         actualizarContadores();
-
-        // Inicializar Sortable después de renderizar
         inicializarSortable();
     }
 
-    // ============================================================
-    // SORTABLE: arrastrar y soltar dentro de cada grupo
-    // ============================================================
     let sortableInstances = [];
 
     function inicializarSortable() {
-        // Destruir instancias anteriores
         sortableInstances.forEach(s => s.destroy());
         sortableInstances = [];
-
         document.querySelectorAll('.gallery-grid').forEach(grid => {
             const tipo = grid.dataset.tipo;
             if (!tipo) return;
-
             const sortable = new Sortable(grid, {
                 animation: 150,
                 ghostClass: 'sortable-ghost',
                 dragClass: 'sortable-drag',
                 handle: '.signal-card',
-                filter: '.card-actions button', // evitar que los botones activen drag
-                onEnd: function(evt) {
-                    // Obtener el nuevo orden de códigos en este grid
+                filter: '.card-actions button',
+                onEnd: function() {
                     const items = grid.querySelectorAll('.signal-card');
                     const nuevosCodigos = Array.from(items).map(el => el.dataset.codigo);
-                    // Guardar en ordenPersonalizado
                     ordenPersonalizado[tipo] = nuevosCodigos;
                     guardarOrdenPersonalizado();
                     actualizarStatus(`Orden de ${tipo} actualizado`, false);
@@ -1077,7 +1130,7 @@
     }
 
     // ============================================================
-    // GESTIÓN DE CATÁLOGO (agregar/eliminar/editar)
+    // GESTIÓN DE CATÁLOGO
     // ============================================================
     function eliminarSenal(codigo) {
         const senal = catalogo.find(s => s.codigo === codigo);
@@ -1086,7 +1139,6 @@
         delete imagenes[codigo];
         localStorage.setItem('catalogo', JSON.stringify(catalogo));
         localStorage.setItem('imagenes', JSON.stringify(imagenes));
-        // Eliminar del orden personalizado
         if (tipo && ordenPersonalizado[tipo]) {
             ordenPersonalizado[tipo] = ordenPersonalizado[tipo].filter(c => c !== codigo);
             guardarOrdenPersonalizado();
@@ -1107,7 +1159,6 @@
         }
         catalogo.push({ nombre, codigo, tipo, subtipo: subtipo || '' });
         localStorage.setItem('catalogo', JSON.stringify(catalogo));
-        // Añadir al final del orden personalizado para ese tipo
         if (!ordenPersonalizado[tipo]) ordenPersonalizado[tipo] = [];
         ordenPersonalizado[tipo].push(codigo);
         guardarOrdenPersonalizado();
@@ -1126,22 +1177,18 @@
         if (index === -1) return false;
         const viejoTipo = catalogo[index].tipo;
         catalogo[index] = { nombre, codigo, tipo, subtipo: subtipo || '' };
-        // Actualizar orden personalizado si cambia el tipo o el código
         if (viejoTipo !== tipo) {
-            // Quitar del orden viejo, añadir al nuevo
             if (ordenPersonalizado[viejoTipo]) {
                 ordenPersonalizado[viejoTipo] = ordenPersonalizado[viejoTipo].filter(c => c !== codigoViejo);
             }
             if (!ordenPersonalizado[tipo]) ordenPersonalizado[tipo] = [];
             ordenPersonalizado[tipo].push(codigo);
         } else if (codigoViejo !== codigo) {
-            // Mismo tipo, solo cambia código
             if (ordenPersonalizado[tipo]) {
                 const idx = ordenPersonalizado[tipo].indexOf(codigoViejo);
                 if (idx !== -1) ordenPersonalizado[tipo][idx] = codigo;
             }
         }
-        // Si cambió el código, actualizar imágenes y selección
         if (codigoViejo !== codigo) {
             if (imagenes[codigoViejo]) {
                 imagenes[codigo] = imagenes[codigoViejo];
@@ -1281,14 +1328,15 @@
         if (!confirm('¿Eliminar este registro?')) return;
         registros = registros.filter(r => r.id !== id);
         localStorage.setItem('registros', JSON.stringify(registros));
-        mostrarResultados();
+        if (document.getElementById('modalResultados').classList.contains('open')) renderTablaResultados();
+        actualizarStatus('Registro eliminado', false);
     }
 
     function eliminarTodos() {
         if (!confirm('¿Eliminar TODOS los registros?')) return;
         registros = [];
         localStorage.setItem('registros', JSON.stringify(registros));
-        if (document.getElementById('modalResultados').classList.contains('open')) mostrarResultados();
+        if (document.getElementById('modalResultados').classList.contains('open')) renderTablaResultados();
         actualizarStatus('Todos los registros eliminados', false);
     }
 
@@ -1300,11 +1348,95 @@
     }
 
     // ============================================================
-    // MODAL RESULTADOS CON ORDEN POR PROGRESIVA
+    // EDICIÓN DE REGISTROS
+    // ============================================================
+    function abrirModalEditarRegistro(id) {
+        const registro = registros.find(r => r.id === id);
+        if (!registro) return;
+        editandoRegistroId = id;
+
+        // Llenar el selector de señales
+        const select = document.getElementById('editCodigo');
+        select.innerHTML = '';
+        catalogo.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.codigo;
+            opt.textContent = `${s.codigo} - ${s.nombre}`;
+            if (s.codigo === registro.codigo) opt.selected = true;
+            select.appendChild(opt);
+        });
+
+        document.getElementById('editRuta').value = registro.ruta || '';
+        document.getElementById('editProgresiva').value = registro.progresiva || '';
+        document.getElementById('editLado').value = registro.lado || 'Izquierdo';
+        document.getElementById('editCondicion').value = registro.condicion || 'Señaletica Existente a Cambiar';
+        document.getElementById('editObservaciones').value = registro.observaciones || '';
+        document.getElementById('mensajeEdicion').textContent = '';
+        document.getElementById('modalEditarRegistro').classList.add('open');
+    }
+
+    function guardarEdicionRegistro() {
+        const id = editandoRegistroId;
+        const registro = registros.find(r => r.id === id);
+        if (!registro) return;
+
+        const nuevoCodigo = document.getElementById('editCodigo').value;
+        const nuevaRuta = document.getElementById('editRuta').value.trim();
+        const nuevaProgresiva = document.getElementById('editProgresiva').value.trim();
+        const nuevoLado = document.getElementById('editLado').value;
+        const nuevaCondicion = document.getElementById('editCondicion').value;
+        const nuevasObs = document.getElementById('editObservaciones').value.trim();
+
+        if (!nuevaRuta || !nuevaProgresiva) {
+            document.getElementById('mensajeEdicion').textContent = '⚠️ Ruta y Progresiva son obligatorios.';
+            document.getElementById('mensajeEdicion').style.color = '#dc2626';
+            return;
+        }
+
+        // Buscar la señal seleccionada
+        const senal = catalogo.find(s => s.codigo === nuevoCodigo);
+        if (!senal) {
+            document.getElementById('mensajeEdicion').textContent = '⚠️ Señal no encontrada.';
+            document.getElementById('mensajeEdicion').style.color = '#dc2626';
+            return;
+        }
+
+        // Actualizar registro
+        registro.ruta = nuevaRuta;
+        registro.progresiva = nuevaProgresiva;
+        registro.lado = nuevoLado;
+        registro.condicion = nuevaCondicion;
+        registro.observaciones = nuevasObs;
+        registro.codigo = senal.codigo;
+        registro.tipo = senal.tipo;
+        registro.subtipo = senal.subtipo || '';
+        registro.descripcion = senal.nombre;
+
+        localStorage.setItem('registros', JSON.stringify(registros));
+        cerrarModalEditarRegistro();
+        if (document.getElementById('modalResultados').classList.contains('open')) renderTablaResultados();
+        actualizarStatus(`✅ Registro ${id} actualizado`, false);
+    }
+
+    function eliminarRegistroDesdeEdicion() {
+        if (!editandoRegistroId) return;
+        if (confirm('¿Eliminar este registro?')) {
+            const id = editandoRegistroId;
+            eliminarRegistro(id);
+            cerrarModalEditarRegistro();
+        }
+    }
+
+    function cerrarModalEditarRegistro() {
+        document.getElementById('modalEditarRegistro').classList.remove('open');
+        editandoRegistroId = null;
+    }
+
+    // ============================================================
+    // MODAL RESULTADOS
     // ============================================================
     function mostrarResultados() {
-        const modal = document.getElementById('modalResultados');
-        modal.classList.add('open');
+        document.getElementById('modalResultados').classList.add('open');
         renderTablaResultados();
     }
 
@@ -1318,11 +1450,9 @@
         }
         sinReg.style.display = 'none';
 
-        // Ordenar según estado actual
         let datos = [...registros];
         if (ordenProgresiva) {
             datos.sort((a, b) => {
-                // Comparar como string numérico (puede contener +)
                 const va = a.progresiva || '';
                 const vb = b.progresiva || '';
                 if (ordenProgresiva === 'asc') return va.localeCompare(vb, undefined, { numeric: true });
@@ -1343,17 +1473,28 @@
                 <td>${r.descripcion || ''}</td>
                 <td>${r.condicion || ''}</td>
                 <td>${r.observaciones || ''}</td>
-                <td><button class="btn-del" data-id="${r.id}">✖</button></td>
+                <td>
+                    <button class="btn-action btn-edit" data-id="${r.id}" title="Editar">✏️</button>
+                    <button class="btn-action btn-del" data-id="${r.id}" title="Eliminar">✖</button>
+                </td>
             `;
             tbody.appendChild(tr);
         });
-        document.querySelectorAll('.btn-del').forEach(btn => {
+
+        // Eventos de botones
+        tbody.querySelectorAll('.btn-edit').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const id = parseInt(btn.dataset.id);
+                abrirModalEditarRegistro(id);
+            });
+        });
+        tbody.querySelectorAll('.btn-del').forEach(btn => {
             btn.addEventListener('click', () => {
                 const id = parseInt(btn.dataset.id);
                 eliminarRegistro(id);
             });
         });
-        // Actualizar indicador de orden en el th
+
         const th = document.getElementById('thProgresiva');
         th.className = 'sortable';
         if (ordenProgresiva) th.classList.add(ordenProgresiva);
@@ -1442,7 +1583,6 @@
                 }
                 catalogo = nuevos;
                 localStorage.setItem('catalogo', JSON.stringify(catalogo));
-                // Resetear orden personalizado
                 ordenPersonalizado = {};
                 guardarOrdenPersonalizado();
                 const codigosExistentes = new Set(catalogo.map(s => s.codigo));
@@ -1505,7 +1645,7 @@
             }
         });
 
-        // Orden por progresiva (clic en encabezado)
+        // Orden por progresiva
         document.getElementById('thProgresiva').addEventListener('click', toggleOrdenProgresiva);
 
         // Modal de agregar/editar señal
@@ -1516,6 +1656,14 @@
         });
         document.getElementById('btnGuardarSenal').addEventListener('click', guardarSenal);
         document.getElementById('btnEliminarSenal').addEventListener('click', eliminarSenalDesdeModal);
+
+        // Modal de edición de registro
+        document.getElementById('closeModalEditar').addEventListener('click', cerrarModalEditarRegistro);
+        document.getElementById('modalEditarRegistro').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) cerrarModalEditarRegistro();
+        });
+        document.getElementById('btnGuardarEdicion').addEventListener('click', guardarEdicionRegistro);
+        document.getElementById('btnEliminarRegistroDesdeEdicion').addEventListener('click', eliminarRegistroDesdeEdicion);
 
         // Enter para agregar registro
         document.querySelectorAll('#inputRuta, #inputProgresiva, #inputObservaciones').forEach(el => {
