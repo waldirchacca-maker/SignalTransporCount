@@ -203,34 +203,45 @@
         }
         .register-bar .status-msg.error { color:#dc2626; }
 
+        /* ===== MODALES GRANDES ===== */
         .modal-overlay {
             display:none; position:fixed; top:0; left:0; right:0; bottom:0;
-            background:rgba(0,0,0,0.5); z-index:1000;
+            background:rgba(0,0,0,0.6); z-index:1000;
             justify-content:center; align-items:center; padding:20px;
         }
         .modal-overlay.open { display:flex; }
+
+        /* Modal grande (resultados) */
         .modal-box {
-            background:#fff; max-width:95vw; max-height:90vh;
-            width:1200px; border-radius:12px; padding:20px;
-            display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,0.4);
-            overflow:auto;
+            background:#fff; border-radius:12px; padding:20px;
+            display:flex; flex-direction:column; box-shadow:0 25px 60px rgba(0,0,0,0.4);
+            width:95vw; max-width:1400px; max-height:92vh;
+            overflow:hidden;
         }
-        .modal-box.small { max-width:700px; }
+
+        /* Modal pequeño (agregar/editar señal, editar registro) */
+        .modal-box.small {
+            max-width:800px;
+            width:100%;
+            max-height:90vh;
+        }
+
         .modal-box .modal-header {
             display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-shrink:0;
         }
-        .modal-box .modal-header h2 { font-size:1.4rem; }
+        .modal-box .modal-header h2 { font-size:1.5rem; }
         .modal-box .modal-header .close-btn {
-            background:none; border:none; font-size:2rem; cursor:pointer; color:#6b7280;
+            background:none; border:none; font-size:2.2rem; cursor:pointer; color:#6b7280; line-height:1;
         }
         .modal-box .modal-header .close-btn:hover { color:#1e293b; }
+
         .modal-box .form-group { margin-bottom:12px; }
-        .modal-box .form-group label { display:block; font-weight:500; font-size:0.85rem; margin-bottom:2px; }
+        .modal-box .form-group label { display:block; font-weight:500; font-size:0.9rem; margin-bottom:2px; }
         .modal-box .form-group input, .modal-box .form-group select {
-            width:100%; padding:6px 10px; border:1px solid #d1d5db; border-radius:4px; font-size:0.9rem;
+            width:100%; padding:8px 12px; border:1px solid #d1d5db; border-radius:6px; font-size:0.95rem;
         }
         .modal-box .form-row { display:flex; gap:12px; flex-wrap:wrap; }
-        .modal-box .form-row .form-group { flex:1; min-width:120px; }
+        .modal-box .form-row .form-group { flex:1; min-width:140px; }
         .modal-box .form-group .reemplazo-check {
             display:flex; align-items:center; gap:8px; margin-bottom:4px;
         }
@@ -238,37 +249,45 @@
             width:18px; height:18px; cursor:pointer;
         }
         .modal-box .btn-save {
-            background:#0b2a45; color:#fff; border:none; padding:8px 24px;
-            border-radius:4px; cursor:pointer; font-weight:600;
+            background:#0b2a45; color:#fff; border:none; padding:10px 28px;
+            border-radius:6px; cursor:pointer; font-weight:600; font-size:1rem;
         }
         .modal-box .btn-save:hover { background:#1e4a6b; }
         .modal-box .btn-danger {
-            background:#b91c1c; color:#fff; border:none; padding:6px 16px;
-            border-radius:4px; cursor:pointer;
+            background:#b91c1c; color:#fff; border:none; padding:8px 20px;
+            border-radius:6px; cursor:pointer; font-weight:600;
         }
 
-        .table-wrap { overflow:auto; flex:1; font-size:0.95rem; }
-        .table-wrap table { width:100%; border-collapse:collapse; }
+        /* ===== TABLA DE RESULTADOS (más grande) ===== */
+        .table-wrap {
+            overflow:auto; flex:1;
+            font-size:1rem; /* más grande */
+        }
+        .table-wrap table {
+            width:100%; border-collapse:collapse;
+        }
         .table-wrap th {
-            background:#0b2a45; color:#fff; padding:10px 12px;
-            position:sticky; top:0; z-index:2; white-space:nowrap; font-size:0.9rem;
+            background:#0b2a45; color:#fff; padding:12px 16px;
+            position:sticky; top:0; z-index:2; white-space:nowrap; font-size:0.95rem;
         }
         .table-wrap th.sortable { cursor:pointer; user-select:none; }
-        .table-wrap th.sortable::after { content:' ↕'; font-size:0.7rem; opacity:0.6; }
+        .table-wrap th.sortable::after { content:' ↕'; font-size:0.8rem; opacity:0.6; }
         .table-wrap th.sortable.asc::after { content:' ↑'; opacity:1; }
         .table-wrap th.sortable.desc::after { content:' ↓'; opacity:1; }
-        .table-wrap td { padding:8px 12px; border-bottom:1px solid #e5e7eb; vertical-align:middle; font-size:0.9rem; }
+        .table-wrap td {
+            padding:10px 14px; border-bottom:1px solid #e5e7eb; vertical-align:middle; font-size:0.95rem;
+        }
         .table-wrap tr:hover { background:#f1f5f9; }
         .table-wrap .btn-action {
-            background:transparent; border:none; cursor:pointer; font-size:1.1rem;
-            padding:2px 6px; transition:0.2s;
+            background:transparent; border:none; cursor:pointer; font-size:1.2rem;
+            padding:4px 8px; transition:0.2s;
         }
         .table-wrap .btn-action:hover { transform:scale(1.2); }
         .table-wrap .btn-del { color:#dc2626; }
         .table-wrap .btn-del:hover { color:#b91c1c; }
         .table-wrap .btn-edit { color:#0b2a45; }
         .table-wrap .btn-edit:hover { color:#1e4a6b; }
-        .empty-msg { padding:30px; text-align:center; color:#6b7280; font-size:1.1rem; }
+        .empty-msg { padding:40px; text-align:center; color:#6b7280; font-size:1.2rem; }
 
         @media (max-width:768px) {
             .top-bar h1 { font-size:1rem; }
@@ -279,9 +298,9 @@
             .register-bar .field { min-width:unset; }
             .register-bar .field-seleccion { order:-1; }
             .register-bar .btn-group { justify-content:flex-end; }
-            .modal-box { max-width:100vw; max-height:95vh; padding:12px; }
-            .table-wrap { font-size:0.8rem; }
-            .table-wrap th, .table-wrap td { padding:6px 8px; }
+            .modal-box { width:100vw; max-height:95vh; padding:12px; border-radius:0; }
+            .table-wrap { font-size:0.85rem; }
+            .table-wrap th, .table-wrap td { padding:8px 10px; }
         }
         @media (max-width:480px) {
             .gallery-grid { grid-template-columns:repeat(auto-fill,minmax(80px,1fr)); }
@@ -342,7 +361,7 @@
         <div id="galeria"></div>
     </div>
 
-    <!-- REGISTER BAR (sin campo RUTA porque ahora es el proyecto) -->
+    <!-- REGISTER BAR -->
     <div class="register-bar" id="registerBar">
         <div class="field field-seleccion">
             <span>Selección:</span>
@@ -387,7 +406,7 @@
     </div>
 </div>
 
-<!-- MODAL RESULTADOS -->
+<!-- MODAL RESULTADOS (grande) -->
 <div class="modal-overlay" id="modalResultados">
     <div class="modal-box">
         <div class="modal-header">
@@ -413,7 +432,7 @@
     </div>
 </div>
 
-<!-- MODAL AGREGAR/EDITAR SEÑAL -->
+<!-- MODAL AGREGAR/EDITAR SEÑAL (pequeño) -->
 <div class="modal-overlay" id="modalAgregarSenal">
     <div class="modal-box small">
         <div class="modal-header">
@@ -453,7 +472,7 @@
     </div>
 </div>
 
-<!-- MODAL EDITAR REGISTRO -->
+<!-- MODAL EDITAR REGISTRO (pequeño pero más ancho) -->
 <div class="modal-overlay" id="modalEditarRegistro">
     <div class="modal-box small">
         <div class="modal-header">
@@ -1581,7 +1600,7 @@
     }
 
     // ============================================================
-    // IMPORTAR ARCHIVO (registros o catálogo)
+    // IMPORTAR ARCHIVO
     // ============================================================
     function importarArchivo(file) {
         const reader = new FileReader();
@@ -1597,7 +1616,6 @@
                     return;
                 }
 
-                // Detectar tipo de archivo por columnas
                 const headers = Object.keys(json[0]);
                 const isRegistros = headers.some(h => /CÓDIGO MTC/i.test(h) || /RUTA/i.test(h) || /PROGRESIVA/i.test(h));
                 const isCatalogo = headers.some(h => /Nombre/i.test(h) && /Código/i.test(h) && /Tipo de Señal/i.test(h));
@@ -1620,7 +1638,6 @@
         let contador = 0;
         const regs = getRegistrosActivos();
 
-        // Mapeo de columnas (con tildes y espacios)
         const mapCol = (posibles) => {
             const headers = Object.keys(json[0]);
             for (let h of headers) {
@@ -1660,7 +1677,6 @@
             let reemplazo = '';
             const reemplazoTexto = String(row[colReemplazo] || '').trim();
             if (reemplazoTexto) {
-                // Intentar extraer código del formato "CÓDIGO - NOMBRE"
                 const match = reemplazoTexto.match(/^([A-Z0-9\-]+)\s*-\s*/i);
                 if (match) {
                     reemplazo = match[1].toUpperCase();
@@ -1670,29 +1686,24 @@
 
             if (!ruta || !progresiva || !codigo) return;
 
-            // Buscar la señal en el catálogo
             const senal = catalogo.find(s => s.codigo === codigo);
             if (!senal) {
-                // Si no existe, agregarla al catálogo (solo si tiene tipo)
                 if (tipo) {
                     const nueva = { nombre: descripcion || codigo, codigo, tipo, subtipo: subtipo || '' };
                     catalogo.push(nueva);
                     localStorage.setItem('catalogo', JSON.stringify(catalogo));
                 } else {
-                    return; // no se puede importar sin tipo
+                    return;
                 }
             }
 
-            // Buscar la señal de reemplazo
             let reemplazoValido = '';
             if (reemplazo) {
                 const sDest = catalogo.find(s => s.codigo === reemplazo);
                 if (sDest) reemplazoValido = reemplazo;
             }
 
-            // Asignar nuevo ID
             const nuevoId = nextId++;
-
             const registro = {
                 id: nuevoId,
                 ruta,
@@ -1785,7 +1796,6 @@
     document.addEventListener('DOMContentLoaded', () => {
         init();
 
-        // Selector de proyecto
         document.getElementById('selectorProyecto').addEventListener('change', function() {
             cambiarProyecto(this.value);
         });
@@ -1793,12 +1803,10 @@
         document.getElementById('btnRenombrarProyecto').addEventListener('click', renombrarProyecto);
         document.getElementById('btnEliminarProyecto').addEventListener('click', eliminarProyecto);
 
-        // Filtros
         document.getElementById('filtroTipo').addEventListener('change', renderGaleria);
         document.getElementById('filtroSubtipo').addEventListener('change', renderGaleria);
         document.getElementById('filtroBusqueda').addEventListener('input', renderGaleria);
 
-        // Botones principales
         document.getElementById('btnAgregar').addEventListener('click', agregarRegistro);
         document.getElementById('btnLimpiarSeleccion').addEventListener('click', limpiarSeleccion);
         document.getElementById('btnVerResultados').addEventListener('click', mostrarResultados);
@@ -1819,10 +1827,8 @@
             }
         });
 
-        // Orden por progresiva
         document.getElementById('thProgresiva').addEventListener('click', toggleOrdenProgresiva);
 
-        // Modal de agregar/editar señal
         document.getElementById('btnAbrirAgregar').addEventListener('click', abrirModalAgregar);
         document.getElementById('closeModalSenal').addEventListener('click', cerrarModalSenal);
         document.getElementById('modalAgregarSenal').addEventListener('click', (e) => {
@@ -1831,7 +1837,6 @@
         document.getElementById('btnGuardarSenal').addEventListener('click', guardarSenal);
         document.getElementById('btnEliminarSenal').addEventListener('click', eliminarSenalDesdeModal);
 
-        // Modal de edición de registro
         document.getElementById('closeModalEditar').addEventListener('click', cerrarModalEditarRegistro);
         document.getElementById('modalEditarRegistro').addEventListener('click', (e) => {
             if (e.target === e.currentTarget) cerrarModalEditarRegistro();
@@ -1839,7 +1844,6 @@
         document.getElementById('btnGuardarEdicion').addEventListener('click', guardarEdicionRegistro);
         document.getElementById('btnEliminarRegistroDesdeEdicion').addEventListener('click', eliminarRegistroDesdeEdicion);
 
-        // Enter para agregar registro
         document.querySelectorAll('#inputProgresiva, #inputObservaciones').forEach(el => {
             el.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
@@ -1849,7 +1853,6 @@
             });
         });
 
-        // Doble clic para editar señal
         document.getElementById('galeria').addEventListener('dblclick', (e) => {
             const card = e.target.closest('.signal-card');
             if (!card) return;
