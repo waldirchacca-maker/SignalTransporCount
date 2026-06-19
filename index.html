@@ -3,605 +3,323 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro de Señaléticas - con edición</title>
-    <!-- Librerías para Excel y Sortable -->
+    <title>Registro de Señaléticas - con Proyectos</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        html, body {
-            height: 100%;
-            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
-            background: #f0f2f5;
-            color: #1e293b;
-            overflow: hidden;
-        }
-        .app {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        html, body { height:100%; font-family:'Segoe UI',Roboto,system-ui,sans-serif; background:#f0f2f5; color:#1e293b; overflow:hidden; }
+        .app { display:flex; flex-direction:column; height:100vh; }
 
-        /* Top bar */
+        /* TOP BAR con selector de proyecto */
         .top-bar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: #0b2a45;
-            color: #fff;
-            padding: 6px 20px;
-            flex-shrink: 0;
-            flex-wrap: wrap;
-            gap: 6px;
+            background:#0b2a45; color:#fff; padding:6px 20px;
+            display:flex; align-items:center; justify-content:space-between; flex-shrink:0; flex-wrap:wrap; gap:6px;
         }
-        .top-bar h1 {
-            font-size: 1.2rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .top-bar .proyecto-selector {
+            display:flex; align-items:center; gap:8px; font-size:0.9rem;
         }
-        .top-bar h1 small {
-            font-size: 0.7rem;
-            font-weight: 400;
-            opacity: 0.8;
+        .top-bar .proyecto-selector select {
+            padding:4px 10px; border-radius:4px; border:1px solid #d1d5db;
+            background:#fff; font-size:0.85rem; color:#1e293b;
+            min-width:150px;
         }
-        .top-actions {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
+        .top-bar .proyecto-selector .btn-proyecto {
+            background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.3);
+            color:#fff; padding:4px 12px; border-radius:4px; cursor:pointer; font-size:0.8rem;
+            transition:0.2s;
         }
+        .top-bar .proyecto-selector .btn-proyecto:hover { background:rgba(255,255,255,0.3); }
+        .top-bar h1 { font-size:1.2rem; font-weight:600; display:flex; align-items:center; gap:8px; }
+        .top-bar h1 small { font-size:0.7rem; font-weight:400; opacity:0.8; }
+        .top-actions { display:flex; gap:6px; flex-wrap:wrap; }
         .top-actions .btn {
-            padding: 4px 14px;
-            font-size: 0.8rem;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            background: rgba(255,255,255,0.15);
-            color: #fff;
-            transition: 0.2s;
+            padding:4px 14px; font-size:0.8rem; border:none; border-radius:4px; cursor:pointer;
+            background:rgba(255,255,255,0.15); color:#fff; transition:0.2s;
         }
-        .top-actions .btn:hover {
-            background: rgba(255,255,255,0.3);
-        }
-        .top-actions .btn-primary { background: #1e7b4a; }
-        .top-actions .btn-primary:hover { background: #14633b; }
-        .top-actions .btn-danger { background: #b91c1c; }
-        .top-actions .btn-danger:hover { background: #991515; }
-        .top-actions .btn-warning { background: #b45309; }
-        .top-actions .btn-warning:hover { background: #92400e; }
-        .top-actions .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.4); }
-        .top-actions .btn-outline:hover { background: rgba(255,255,255,0.1); }
+        .top-actions .btn:hover { background:rgba(255,255,255,0.3); }
+        .top-actions .btn-primary { background:#1e7b4a; }
+        .top-actions .btn-primary:hover { background:#14633b; }
+        .top-actions .btn-danger { background:#b91c1c; }
+        .top-actions .btn-danger:hover { background:#991515; }
+        .top-actions .btn-warning { background:#b45309; }
+        .top-actions .btn-warning:hover { background:#92400e; }
+        .top-actions .btn-outline { background:transparent; border:1px solid rgba(255,255,255,0.4); }
+        .top-actions .btn-outline:hover { background:rgba(255,255,255,0.1); }
 
-        /* Filter bar */
         .filter-bar {
-            background: #fff;
-            padding: 6px 20px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
-            border-bottom: 1px solid #d1d5db;
-            flex-shrink: 0;
+            background:#fff; padding:6px 20px; display:flex; flex-wrap:wrap; gap:10px;
+            align-items:center; border-bottom:1px solid #d1d5db; flex-shrink:0;
         }
-        .filter-bar label {
-            font-weight: 500;
-            font-size: 0.8rem;
-            color: #374151;
-        }
+        .filter-bar label { font-weight:500; font-size:0.8rem; color:#374151; }
         .filter-bar select, .filter-bar input {
-            padding: 4px 10px;
-            border-radius: 4px;
-            border: 1px solid #d1d5db;
-            background: #fff;
-            font-size: 0.85rem;
+            padding:4px 10px; border-radius:4px; border:1px solid #d1d5db;
+            background:#fff; font-size:0.85rem;
         }
-        .filter-bar input {
-            min-width: 160px;
-        }
-        .filter-bar .stats {
-            margin-left: auto;
-            font-size: 0.8rem;
-            color: #4b5563;
-        }
+        .filter-bar input { min-width:160px; }
+        .filter-bar .stats { margin-left:auto; font-size:0.8rem; color:#4b5563; }
         .filter-bar .btn-add-sign {
-            background: #0b2a45;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            padding: 4px 14px;
-            cursor: pointer;
-            font-size: 0.8rem;
+            background:#0b2a45; color:#fff; border:none; border-radius:4px;
+            padding:4px 14px; cursor:pointer; font-size:0.8rem;
         }
-        .filter-bar .btn-add-sign:hover {
-            background: #1e4a6b;
-        }
+        .filter-bar .btn-add-sign:hover { background:#1e4a6b; }
 
-        /* Gallery wrapper */
-        .gallery-wrapper {
-            flex: 1;
-            overflow-y: auto;
-            padding: 12px 16px;
-            background: #f8fafc;
-        }
-        #galeria {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .section-group {
-            width: 100%;
-        }
+        .gallery-wrapper { flex:1; overflow-y:auto; padding:12px 16px; background:#f8fafc; }
+        #galeria { display:flex; flex-direction:column; gap:16px; }
+        .section-group { width:100%; }
         .section-header {
-            font-weight: 700;
-            font-size: 1.1rem;
-            color: #0b2a45;
-            border-bottom: 3px solid #d1d5db;
-            padding-bottom: 6px;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            font-weight:700; font-size:1.1rem; color:#0b2a45;
+            border-bottom:3px solid #d1d5db; padding-bottom:6px; margin-bottom:12px;
+            display:flex; align-items:center; gap:8px;
         }
-        .section-header .count {
-            font-size: 0.7rem;
-            font-weight: 400;
-            color: #64748b;
-        }
-
+        .section-header .count { font-size:0.7rem; font-weight:400; color:#64748b; }
         .gallery-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-            gap: 10px;
-            min-height: 60px;
+            display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr));
+            gap:10px; min-height:60px;
         }
-        .gallery-grid .sortable-drag {
-            opacity: 0.6;
-            transform: scale(0.95);
-        }
-        .gallery-grid .sortable-ghost {
-            opacity: 0.3;
-            border: 2px dashed #0b2a45;
-        }
+        .gallery-grid .sortable-drag { opacity:0.6; transform:scale(0.95); }
+        .gallery-grid .sortable-ghost { opacity:0.3; border:2px dashed #0b2a45; }
 
         .signal-card {
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-            padding: 6px 6px 8px;
-            text-align: center;
-            cursor: grab;
-            transition: all 0.15s ease;
-            border: 2px solid transparent;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
-            user-select: none;
+            background:#fff; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.08);
+            padding:6px 6px 8px; text-align:center; cursor:grab;
+            transition:all 0.15s ease; border:2px solid transparent;
+            display:flex; flex-direction:column; align-items:center; position:relative; user-select:none;
         }
-        .signal-card:active {
-            cursor: grabbing;
-        }
-        .signal-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-        }
-        .signal-card.selected {
-            border-color: #0b2a45;
-            background: #e6f0fa;
-            box-shadow: 0 0 0 3px rgba(11,42,69,0.2);
-        }
+        .signal-card:active { cursor:grabbing; }
+        .signal-card:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,0.12); }
+        .signal-card.selected { border-color:#0b2a45; background:#e6f0fa; box-shadow:0 0 0 3px rgba(11,42,69,0.2); }
+        .signal-card.reemplazo { border-color:#f59e0b; background:#fef3c7; box-shadow:0 0 0 3px rgba(245,158,11,0.2); }
         .signal-card .thumb {
-            width: 100%;
-            aspect-ratio: 1/1;
-            object-fit: contain;
-            background: #f1f5f9;
-            border-radius: 4px;
-            padding: 4px;
-            display: block;
-            pointer-events: none;
+            width:100%; aspect-ratio:1/1; object-fit:contain; background:#f1f5f9;
+            border-radius:4px; padding:4px; display:block; pointer-events:none;
         }
         .signal-card .s-name {
-            font-size: 0.7rem;
-            font-weight: 500;
-            line-height: 1.2;
-            margin-top: 4px;
-            color: #1e293b;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
+            font-size:0.7rem; font-weight:500; line-height:1.2; margin-top:4px;
+            color:#1e293b; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
         }
         .signal-card .s-code {
-            font-size: 0.65rem;
-            color: #64748b;
-            font-weight: 600;
-            background: #f1f5f9;
-            padding: 0 6px;
-            border-radius: 10px;
-            margin-top: 2px;
+            font-size:0.65rem; color:#64748b; font-weight:600;
+            background:#f1f5f9; padding:0 6px; border-radius:10px; margin-top:2px;
         }
         .signal-card .s-type-badge {
-            position: absolute;
-            top: 4px;
-            right: 4px;
-            font-size: 0.5rem;
-            background: rgba(0,0,0,0.6);
-            color: #fff;
-            padding: 1px 6px;
-            border-radius: 10px;
-            pointer-events: none;
+            position:absolute; top:4px; right:4px; font-size:0.5rem;
+            background:rgba(0,0,0,0.6); color:#fff; padding:1px 6px; border-radius:10px; pointer-events:none;
         }
+        .signal-card .reemplazo-icon {
+            position:absolute; bottom:4px; left:4px; font-size:0.8rem;
+            background:rgba(245,158,11,0.9); color:#fff; padding:0 6px; border-radius:10px;
+            pointer-events:none; display:none;
+        }
+        .signal-card.reemplazo .reemplazo-icon { display:block; }
         .signal-card .card-actions {
-            position: absolute;
-            bottom: 4px;
-            right: 4px;
-            display: flex;
-            gap: 4px;
+            position:absolute; bottom:4px; right:4px; display:flex; gap:4px;
         }
         .signal-card .card-actions button {
-            background: rgba(0,0,0,0.5);
-            color: #fff;
-            border: none;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            font-size: 11px;
-            line-height: 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: 0.2s;
+            background:rgba(0,0,0,0.5); color:#fff; border:none; border-radius:50%;
+            width:20px; height:20px; font-size:11px; line-height:20px; text-align:center; cursor:pointer; transition:0.2s;
         }
-        .signal-card .card-actions button:hover {
-            background: #0b2a45;
-            transform: scale(1.1);
-        }
-        .signal-card .card-actions .del-btn {
-            background: rgba(200,0,0,0.6);
-        }
-        .signal-card .card-actions .del-btn:hover {
-            background: #b91c1c;
-        }
+        .signal-card .card-actions button:hover { background:#0b2a45; transform:scale(1.1); }
+        .signal-card .card-actions .del-btn { background:rgba(200,0,0,0.6); }
+        .signal-card .card-actions .del-btn:hover { background:#b91c1c; }
 
-        .signal-card.type-Reglamentación { background: #dbeafe; border-color: #93c5fd; }
-        .signal-card.type-Prevención { background: #fef3c7; border-color: #fcd34d; }
-        .signal-card.type-Información { background: #d1fae5; border-color: #6ee7b7; }
-        .signal-card.type-Ambiental { background: #d4edda; border-color: #8fcf9e; }
-        .signal-card.type-Servicios { background: #fce7f3; border-color: #f9a8d4; }
-        .signal-card.type-Turística { background: #fde68a; border-color: #fbbf24; }
-        .signal-card.type-Reglamentación.selected { border-color: #1d4ed8; }
-        .signal-card.type-Prevención.selected { border-color: #b45309; }
-        .signal-card.type-Información.selected { border-color: #047857; }
-        .signal-card.type-Ambiental.selected { border-color: #15803d; }
-        .signal-card.type-Servicios.selected { border-color: #be185d; }
-        .signal-card.type-Turística.selected { border-color: #d97706; }
+        .signal-card.type-Reglamentación { background:#dbeafe; border-color:#93c5fd; }
+        .signal-card.type-Prevención { background:#fef3c7; border-color:#fcd34d; }
+        .signal-card.type-Información { background:#d1fae5; border-color:#6ee7b7; }
+        .signal-card.type-Ambiental { background:#d4edda; border-color:#8fcf9e; }
+        .signal-card.type-Servicios { background:#fce7f3; border-color:#f9a8d4; }
+        .signal-card.type-Turística { background:#fde68a; border-color:#fbbf24; }
+        .signal-card.type-Reglamentación.selected { border-color:#1d4ed8; }
+        .signal-card.type-Prevención.selected { border-color:#b45309; }
+        .signal-card.type-Información.selected { border-color:#047857; }
+        .signal-card.type-Ambiental.selected { border-color:#15803d; }
+        .signal-card.type-Servicios.selected { border-color:#be185d; }
+        .signal-card.type-Turística.selected { border-color:#d97706; }
+        .signal-card.type-Reglamentación.reemplazo { border-color:#f59e0b; }
+        .signal-card.type-Prevención.reemplazo { border-color:#f59e0b; }
+        .signal-card.type-Información.reemplazo { border-color:#f59e0b; }
+        .signal-card.type-Ambiental.reemplazo { border-color:#f59e0b; }
+        .signal-card.type-Servicios.reemplazo { border-color:#f59e0b; }
+        .signal-card.type-Turística.reemplazo { border-color:#f59e0b; }
 
-        /* Register bar fija abajo */
         .register-bar {
-            background: #fff;
-            border-top: 2px solid #d1d5db;
-            padding: 8px 20px;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: flex-end;
-            gap: 8px 16px;
-            flex-shrink: 0;
-            box-shadow: 0 -2px 8px rgba(0,0,0,0.05);
+            background:#fff; border-top:2px solid #d1d5db; padding:8px 20px;
+            display:flex; flex-wrap:wrap; align-items:flex-end; gap:8px 16px;
+            flex-shrink:0; box-shadow:0 -2px 8px rgba(0,0,0,0.05);
         }
         .register-bar .field {
-            display: flex;
-            flex-direction: column;
-            min-width: 80px;
-            flex: 1 1 0;
+            display:flex; flex-direction:column; min-width:80px; flex:1 1 0;
         }
         .register-bar .field label {
-            font-size: 0.65rem;
-            font-weight: 600;
-            color: #4b5563;
-            margin-bottom: 1px;
+            font-size:0.65rem; font-weight:600; color:#4b5563; margin-bottom:1px;
         }
         .register-bar .field input,
         .register-bar .field select,
         .register-bar .field textarea {
-            padding: 4px 8px;
-            border: 1px solid #d1d5db;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            background: #fff;
-            width: 100%;
+            padding:4px 8px; border:1px solid #d1d5db; border-radius:4px;
+            font-size:0.8rem; background:#fff; width:100%;
         }
-        .register-bar .field textarea {
-            resize: vertical;
-            min-height: 32px;
-            max-height: 50px;
+        .register-bar .field textarea { resize:vertical; min-height:32px; max-height:50px; }
+        .register-bar .field-ruta { flex:1.2; }
+        .register-bar .field-progresiva { flex:1; }
+        .register-bar .field-lado { flex:0.7; }
+        .register-bar .field-condicion { flex:0.9; }
+        .register-bar .field-obs { flex:1.5; }
+        .register-bar .field-reemplazo {
+            flex:0.9; display:flex; flex-direction:column; gap:2px;
         }
-        .register-bar .field-ruta { flex: 1.2; }
-        .register-bar .field-progresiva { flex: 1; }
-        .register-bar .field-lado { flex: 0.7; }
-        .register-bar .field-condicion { flex: 0.9; }
-        .register-bar .field-obs { flex: 1.3; }
+        .register-bar .field-reemplazo .reemplazo-check {
+            display:flex; align-items:center; gap:6px; font-size:0.7rem;
+            font-weight:500; color:#4b5563;
+        }
+        .register-bar .field-reemplazo .reemplazo-check input[type="checkbox"] {
+            width:16px; height:16px; cursor:pointer;
+        }
+        .register-bar .field-reemplazo .reemplazo-info {
+            font-size:0.7rem; color:#0b2a45; font-weight:500;
+            background:#fef3c7; padding:2px 8px; border-radius:4px; display:none;
+        }
+        .register-bar .field-reemplazo .reemplazo-info.visible { display:block; }
+
         .register-bar .field-seleccion {
-            flex: 0.8;
-            font-size: 0.75rem;
-            font-weight: 500;
-            color: #0b2a45;
-            display: flex;
-            align-items: center;
-            gap: 4px;
+            flex:0.8; font-size:0.75rem; font-weight:500; color:#0b2a45;
+            display:flex; align-items:center; gap:4px;
         }
         .register-bar .field-seleccion .codigo {
-            background: #dbeafe;
-            padding: 1px 8px;
-            border-radius: 12px;
-            font-size: 0.7rem;
+            background:#dbeafe; padding:1px 8px; border-radius:12px; font-size:0.7rem;
         }
         .register-bar .btn-group {
-            display: flex;
-            gap: 6px;
-            align-items: center;
-            flex-wrap: wrap;
+            display:flex; gap:6px; align-items:center; flex-wrap:wrap;
         }
         .register-bar .btn {
-            padding: 5px 16px;
-            border: none;
-            border-radius: 4px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: 0.2s;
-            white-space: nowrap;
+            padding:5px 16px; border:none; border-radius:4px; font-weight:600;
+            cursor:pointer; font-size:0.8rem; transition:0.2s; white-space:nowrap;
         }
-        .register-bar .btn-add {
-            background: #0b2a45;
-            color: #fff;
-        }
-        .register-bar .btn-add:hover {
-            background: #1e4a6b;
-        }
-        .register-bar .btn-clear {
-            background: #e5e7eb;
-            color: #1e293b;
-        }
-        .register-bar .btn-clear:hover {
-            background: #d1d5db;
-        }
+        .register-bar .btn-add { background:#0b2a45; color:#fff; }
+        .register-bar .btn-add:hover { background:#1e4a6b; }
+        .register-bar .btn-clear { background:#e5e7eb; color:#1e293b; }
+        .register-bar .btn-clear:hover { background:#d1d5db; }
         .register-bar .status-msg {
-            font-size: 0.75rem;
-            color: #16a34a;
-            flex: 0 1 180px;
+            font-size:0.75rem; color:#16a34a; flex:0 1 180px;
         }
-        .register-bar .status-msg.error {
-            color: #dc2626;
-        }
+        .register-bar .status-msg.error { color:#dc2626; }
 
-        /* Modales */
         .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+            display:none; position:fixed; top:0; left:0; right:0; bottom:0;
+            background:rgba(0,0,0,0.5); z-index:1000;
+            justify-content:center; align-items:center; padding:20px;
         }
-        .modal-overlay.open {
-            display: flex;
-        }
+        .modal-overlay.open { display:flex; }
         .modal-box {
-            background: #fff;
-            max-width: 95vw;
-            max-height: 90vh;
-            width: 1200px;
-            border-radius: 12px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-            overflow: auto;
+            background:#fff; max-width:95vw; max-height:90vh;
+            width:1200px; border-radius:12px; padding:20px;
+            display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,0.4);
+            overflow:auto;
         }
+        .modal-box.small { max-width:700px; }
         .modal-box .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            flex-shrink: 0;
+            display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-shrink:0;
         }
-        .modal-box .modal-header h2 {
-            font-size: 1.4rem;
-        }
+        .modal-box .modal-header h2 { font-size:1.4rem; }
         .modal-box .modal-header .close-btn {
-            background: none;
-            border: none;
-            font-size: 2rem;
-            cursor: pointer;
-            color: #6b7280;
+            background:none; border:none; font-size:2rem; cursor:pointer; color:#6b7280;
         }
-        .modal-box .modal-header .close-btn:hover {
-            color: #1e293b;
-        }
-        .modal-box .form-group {
-            margin-bottom: 12px;
-        }
-        .modal-box .form-group label {
-            display: block;
-            font-weight: 500;
-            font-size: 0.85rem;
-            margin-bottom: 2px;
-        }
+        .modal-box .modal-header .close-btn:hover { color:#1e293b; }
+        .modal-box .form-group { margin-bottom:12px; }
+        .modal-box .form-group label { display:block; font-weight:500; font-size:0.85rem; margin-bottom:2px; }
         .modal-box .form-group input, .modal-box .form-group select {
-            width: 100%;
-            padding: 6px 10px;
-            border: 1px solid #d1d5db;
-            border-radius: 4px;
-            font-size: 0.9rem;
+            width:100%; padding:6px 10px; border:1px solid #d1d5db; border-radius:4px; font-size:0.9rem;
         }
-        .modal-box .form-row {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
+        .modal-box .form-row { display:flex; gap:12px; flex-wrap:wrap; }
+        .modal-box .form-row .form-group { flex:1; min-width:120px; }
+        .modal-box .form-group .reemplazo-check {
+            display:flex; align-items:center; gap:8px; margin-bottom:4px;
         }
-        .modal-box .form-row .form-group {
-            flex: 1;
-            min-width: 120px;
+        .modal-box .form-group .reemplazo-check input[type="checkbox"] {
+            width:18px; height:18px; cursor:pointer;
         }
         .modal-box .btn-save {
-            background: #0b2a45;
-            color: #fff;
-            border: none;
-            padding: 8px 24px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
+            background:#0b2a45; color:#fff; border:none; padding:8px 24px;
+            border-radius:4px; cursor:pointer; font-weight:600;
         }
-        .modal-box .btn-save:hover {
-            background: #1e4a6b;
-        }
+        .modal-box .btn-save:hover { background:#1e4a6b; }
         .modal-box .btn-danger {
-            background: #b91c1c;
-            color: #fff;
-            border: none;
-            padding: 6px 16px;
-            border-radius: 4px;
-            cursor: pointer;
+            background:#b91c1c; color:#fff; border:none; padding:6px 16px;
+            border-radius:4px; cursor:pointer;
         }
 
-        /* Tabla de resultados */
-        .table-wrap {
-            overflow: auto;
-            flex: 1;
-            font-size: 0.95rem;
-        }
-        .table-wrap table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+        .table-wrap { overflow:auto; flex:1; font-size:0.95rem; }
+        .table-wrap table { width:100%; border-collapse:collapse; }
         .table-wrap th {
-            background: #0b2a45;
-            color: #fff;
-            padding: 10px 12px;
-            position: sticky;
-            top: 0;
-            z-index: 2;
-            white-space: nowrap;
-            font-size: 0.9rem;
+            background:#0b2a45; color:#fff; padding:10px 12px;
+            position:sticky; top:0; z-index:2; white-space:nowrap; font-size:0.9rem;
         }
-        .table-wrap th.sortable {
-            cursor: pointer;
-            user-select: none;
-        }
-        .table-wrap th.sortable::after {
-            content: ' ↕';
-            font-size: 0.7rem;
-            opacity: 0.6;
-        }
-        .table-wrap th.sortable.asc::after {
-            content: ' ↑';
-            opacity: 1;
-        }
-        .table-wrap th.sortable.desc::after {
-            content: ' ↓';
-            opacity: 1;
-        }
-        .table-wrap td {
-            padding: 8px 12px;
-            border-bottom: 1px solid #e5e7eb;
-            vertical-align: middle;
-            font-size: 0.9rem;
-        }
-        .table-wrap tr:hover {
-            background: #f1f5f9;
-        }
+        .table-wrap th.sortable { cursor:pointer; user-select:none; }
+        .table-wrap th.sortable::after { content:' ↕'; font-size:0.7rem; opacity:0.6; }
+        .table-wrap th.sortable.asc::after { content:' ↑'; opacity:1; }
+        .table-wrap th.sortable.desc::after { content:' ↓'; opacity:1; }
+        .table-wrap td { padding:8px 12px; border-bottom:1px solid #e5e7eb; vertical-align:middle; font-size:0.9rem; }
+        .table-wrap tr:hover { background:#f1f5f9; }
         .table-wrap .btn-action {
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            font-size: 1.1rem;
-            padding: 2px 6px;
-            transition: 0.2s;
+            background:transparent; border:none; cursor:pointer; font-size:1.1rem;
+            padding:2px 6px; transition:0.2s;
         }
-        .table-wrap .btn-action:hover {
-            transform: scale(1.2);
-        }
-        .table-wrap .btn-del {
-            color: #dc2626;
-        }
-        .table-wrap .btn-del:hover {
-            color: #b91c1c;
-        }
-        .table-wrap .btn-edit {
-            color: #0b2a45;
-        }
-        .table-wrap .btn-edit:hover {
-            color: #1e4a6b;
-        }
-        .empty-msg {
-            padding: 30px;
-            text-align: center;
-            color: #6b7280;
-            font-size: 1.1rem;
-        }
+        .table-wrap .btn-action:hover { transform:scale(1.2); }
+        .table-wrap .btn-del { color:#dc2626; }
+        .table-wrap .btn-del:hover { color:#b91c1c; }
+        .table-wrap .btn-edit { color:#0b2a45; }
+        .table-wrap .btn-edit:hover { color:#1e4a6b; }
+        .empty-msg { padding:30px; text-align:center; color:#6b7280; font-size:1.1rem; }
 
-        /* Modal de edición de registro */
-        .modal-box.small {
-            max-width: 700px;
+        @media (max-width:768px) {
+            .top-bar h1 { font-size:1rem; }
+            .filter-bar { padding:6px 12px; gap:6px; }
+            .filter-bar input { min-width:100px; }
+            .gallery-grid { grid-template-columns:repeat(auto-fill,minmax(100px,1fr)); }
+            .register-bar { flex-direction:column; align-items:stretch; gap:6px; }
+            .register-bar .field { min-width:unset; }
+            .register-bar .field-seleccion { order:-1; }
+            .register-bar .btn-group { justify-content:flex-end; }
+            .modal-box { max-width:100vw; max-height:95vh; padding:12px; }
+            .table-wrap { font-size:0.8rem; }
+            .table-wrap th, .table-wrap td { padding:6px 8px; }
         }
-
-        @media (max-width: 768px) {
-            .top-bar h1 { font-size: 1rem; }
-            .filter-bar { padding: 6px 12px; gap: 6px; }
-            .filter-bar input { min-width: 100px; }
-            .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
-            .register-bar { flex-direction: column; align-items: stretch; gap: 6px; }
-            .register-bar .field { min-width: unset; }
-            .register-bar .field-seleccion { order: -1; }
-            .register-bar .btn-group { justify-content: flex-end; }
-            .modal-box { max-width: 100vw; max-height: 95vh; padding: 12px; }
-            .table-wrap { font-size: 0.8rem; }
-            .table-wrap th, .table-wrap td { padding: 6px 8px; }
+        @media (max-width:480px) {
+            .gallery-grid { grid-template-columns:repeat(auto-fill,minmax(80px,1fr)); }
+            .signal-card .s-name { font-size:0.6rem; }
         }
-        @media (max-width: 480px) {
-            .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
-            .signal-card .s-name { font-size: 0.6rem; }
-        }
-        .gallery-wrapper::-webkit-scrollbar {
-            width: 6px;
-        }
-        .gallery-wrapper::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        .gallery-wrapper::-webkit-scrollbar-thumb {
-            background: #94a3b8;
-            border-radius: 8px;
-        }
-        .gallery-wrapper::-webkit-scrollbar-thumb:hover {
-            background: #64748b;
-        }
+        .gallery-wrapper::-webkit-scrollbar { width:6px; }
+        .gallery-wrapper::-webkit-scrollbar-track { background:#f1f5f9; }
+        .gallery-wrapper::-webkit-scrollbar-thumb { background:#94a3b8; border-radius:8px; }
+        .gallery-wrapper::-webkit-scrollbar-thumb:hover { background:#64748b; }
     </style>
 </head>
 <body>
 <div class="app">
 
-    <!-- Top bar -->
+    <!-- TOP BAR con selector de proyecto -->
     <header class="top-bar">
-        <h1>🚦 Señaléticas <small>con edición</small></h1>
+        <div class="proyecto-selector">
+            <span>📁 Proyecto:</span>
+            <select id="selectorProyecto">
+                <option value="PE-1N">PE-1N</option>
+            </select>
+            <button class="btn-proyecto" id="btnNuevoProyecto">➕ Nuevo</button>
+            <button class="btn-proyecto" id="btnRenombrarProyecto">✏️ Renombrar</button>
+            <button class="btn-proyecto" id="btnEliminarProyecto" style="color:#f87171;">🗑️ Eliminar</button>
+        </div>
         <div class="top-actions">
             <button class="btn btn-outline" id="btnVerResultados">📊 Ver registros</button>
             <button class="btn btn-primary" id="btnExportarExcel">📤 Exportar</button>
-            <button class="btn btn-danger" id="btnEliminarTodos">🗑️ Limpiar</button>
+            <button class="btn btn-danger" id="btnEliminarTodos">🗑️ Limpiar proyecto</button>
             <button class="btn btn-warning" id="btnResetCatalogo">↺ Reset</button>
             <button class="btn btn-outline" id="btnImportarCatalogo">📂 Importar</button>
             <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none;">
         </div>
     </header>
 
-    <!-- Filter bar + botón añadir señal -->
+    <!-- FILTER BAR -->
     <div class="filter-bar">
         <label>Tipo:</label>
         <select id="filtroTipo">
@@ -621,21 +339,17 @@
         <button class="btn-add-sign" id="btnAbrirAgregar">➕ Añadir señal</button>
     </div>
 
-    <!-- Galería -->
+    <!-- GALLERY -->
     <div class="gallery-wrapper">
         <div id="galeria"></div>
     </div>
 
-    <!-- Barra de registro fija -->
+    <!-- REGISTER BAR (sin campo RUTA porque ahora es el proyecto) -->
     <div class="register-bar" id="registerBar">
         <div class="field field-seleccion">
             <span>Selección:</span>
             <span id="senalSeleccionadaNombre" style="font-weight:600;">(ninguna)</span>
             <span class="codigo" id="senalSeleccionadaCodigo"></span>
-        </div>
-        <div class="field field-ruta">
-            <label>RUTA</label>
-            <input type="text" id="inputRuta" placeholder="Ej: PE-1N" value="PE-1N">
         </div>
         <div class="field field-progresiva">
             <label>PROGRESIVA</label>
@@ -660,6 +374,13 @@
             <label>OBSERVACIONES</label>
             <textarea id="inputObservaciones" placeholder="Detalles..."></textarea>
         </div>
+        <div class="field field-reemplazo" id="fieldReemplazo">
+            <div class="reemplazo-check">
+                <input type="checkbox" id="checkReemplazo">
+                <label for="checkReemplazo">Señal a reemplazar</label>
+            </div>
+            <div class="reemplazo-info" id="reemplazoInfo">→ <span id="reemplazoNombre"></span> (<span id="reemplazoCodigo"></span>)</div>
+        </div>
         <div class="btn-group">
             <button class="btn btn-add" id="btnAgregar">➕ Agregar</button>
             <button class="btn btn-clear" id="btnLimpiarSeleccion">✖ Deseleccionar</button>
@@ -668,11 +389,11 @@
     </div>
 </div>
 
-<!-- Modal de resultados -->
+<!-- MODAL RESULTADOS -->
 <div class="modal-overlay" id="modalResultados">
     <div class="modal-box">
         <div class="modal-header">
-            <h2>📋 Registros tomados</h2>
+            <h2>📋 Registros del proyecto <span id="tituloProyectoResultados"></span></h2>
             <button class="close-btn" id="closeModal">&times;</button>
         </div>
         <div class="table-wrap">
@@ -682,19 +403,21 @@
                     <th class="sortable" id="thProgresiva">PROGRESIVA</th>
                     <th>LADO</th>
                     <th>CÓDIGO</th><th>TIPO</th><th>SUBTIPO</th><th>DESCRIPCIÓN</th>
-                    <th>CONDICIÓN</th><th>OBSERVACIONES</th>
+                    <th>CONDICIÓN</th>
+                    <th>REEMPLAZAR POR</th>
+                    <th>OBSERVACIONES</th>
                     <th>ACCIONES</th>
                 </tr></thead>
                 <tbody id="tbodyResultados"></tbody>
             </table>
-            <div id="sinRegistros" class="empty-msg">No hay registros aún.</div>
+            <div id="sinRegistros" class="empty-msg">No hay registros en este proyecto.</div>
         </div>
     </div>
 </div>
 
-<!-- Modal para agregar/editar señal -->
+<!-- MODAL AGREGAR/EDITAR SEÑAL -->
 <div class="modal-overlay" id="modalAgregarSenal">
-    <div class="modal-box" style="max-width:700px;">
+    <div class="modal-box small">
         <div class="modal-header">
             <h2 id="modalSenalTitulo">➕ Agregar señal</h2>
             <button class="close-btn" id="closeModalSenal">&times;</button>
@@ -732,7 +455,7 @@
     </div>
 </div>
 
-<!-- Modal para editar registro -->
+<!-- MODAL EDITAR REGISTRO -->
 <div class="modal-overlay" id="modalEditarRegistro">
     <div class="modal-box small">
         <div class="modal-header">
@@ -769,6 +492,15 @@
                     <option value="Señaletica Nueva">Señaletica Nueva</option>
                 </select>
             </div>
+        </div>
+        <div class="form-group">
+            <div class="reemplazo-check">
+                <input type="checkbox" id="editCheckReemplazo">
+                <label for="editCheckReemplazo">Señal a reemplazar</label>
+            </div>
+            <select id="editReemplazo" style="display:none;">
+                <option value="">(ninguno)</option>
+            </select>
         </div>
         <div class="form-group">
             <label>OBSERVACIONES</label>
@@ -826,49 +558,102 @@
     // ============================================================
     let catalogo = [];
     let imagenes = {};
-    let registros = [];
+    let proyectos = {}; // { nombreProyecto: [registros] }
+    let proyectoActivo = 'PE-1N';
     let nextId = 1;
     let selectedCodigo = null;
+    let reemplazoSeleccionado = null;
     let ordenProgresiva = null;
     let ordenPersonalizado = {};
-
-    // Variable para edición de registro
     let editandoRegistroId = null;
 
     // ============================================================
     // INICIALIZACIÓN
     // ============================================================
     function init() {
+        // Cargar catálogo
         const storedCatalogo = localStorage.getItem('catalogo');
         if (storedCatalogo) {
             try { catalogo = JSON.parse(storedCatalogo); } catch(e) { catalogo = buildInitialCatalog(); }
         } else {
             catalogo = buildInitialCatalog();
         }
+
+        // Cargar imágenes
         const storedImagenes = localStorage.getItem('imagenes');
         if (storedImagenes) {
             try { imagenes = JSON.parse(storedImagenes); } catch(e) { imagenes = {}; }
         }
-        const storedRegistros = localStorage.getItem('registros');
-        if (storedRegistros) {
+
+        // Cargar proyectos
+        const storedProyectos = localStorage.getItem('proyectos');
+        if (storedProyectos) {
             try {
-                registros = JSON.parse(storedRegistros);
-                if (registros.length > 0) nextId = Math.max(...registros.map(r => r.id || 0)) + 1;
-            } catch(e) { registros = []; }
+                const parsed = JSON.parse(storedProyectos);
+                proyectos = parsed;
+                // Asegurar que existe al menos un proyecto
+                if (Object.keys(proyectos).length === 0) {
+                    proyectos = { 'PE-1N': [] };
+                }
+            } catch(e) {
+                proyectos = { 'PE-1N': [] };
+            }
+        } else {
+            proyectos = { 'PE-1N': [] };
         }
+
+        // Cargar proyecto activo
+        const storedActivo = localStorage.getItem('proyectoActivo');
+        if (storedActivo && proyectos[storedActivo]) {
+            proyectoActivo = storedActivo;
+        } else {
+            proyectoActivo = Object.keys(proyectos)[0] || 'PE-1N';
+        }
+
+        // Cargar orden personalizado
         const storedOrden = localStorage.getItem('ordenPersonalizado');
         if (storedOrden) {
             try { ordenPersonalizado = JSON.parse(storedOrden); } catch(e) { ordenPersonalizado = {}; }
         }
+
+        // Cargar nextId desde todos los registros
+        let maxId = 0;
+        Object.values(proyectos).forEach(regs => {
+            regs.forEach(r => { if (r.id > maxId) maxId = r.id; });
+        });
+        nextId = maxId + 1;
+
+        // Si el catálogo está vacío, restaurar
         if (catalogo.length === 0) {
             catalogo = buildInitialCatalog();
             localStorage.setItem('catalogo', JSON.stringify(catalogo));
         }
+
+        actualizarSelectorProyectos();
         renderGaleria();
         actualizarContadores();
         llenarSubtipos();
         actualizarSeleccion();
         actualizarStatus('Listo', false);
+        reemplazoSeleccionado = null;
+        actualizarInfoReemplazo();
+
+        // Evento checkbox
+        document.getElementById('checkReemplazo').addEventListener('change', function() {
+            if (!this.checked) {
+                reemplazoSeleccionado = null;
+                actualizarInfoReemplazo();
+                eliminarTextoReemplazoObs();
+            } else {
+                if (!selectedCodigo) {
+                    this.checked = false;
+                    actualizarStatus('⚠️ Primero selecciona una señal principal', true);
+                    return;
+                }
+                actualizarStatus('ℹ️ Haz clic en la señal que reemplazará a la actual', false);
+            }
+            renderGaleria();
+        });
     }
 
     function buildInitialCatalog() {
@@ -892,6 +677,103 @@
             }
         }
         return result;
+    }
+
+    // ============================================================
+    // FUNCIONES DE PROYECTOS
+    // ============================================================
+    function actualizarSelectorProyectos() {
+        const sel = document.getElementById('selectorProyecto');
+        const current = proyectoActivo;
+        sel.innerHTML = '';
+        Object.keys(proyectos).forEach(nombre => {
+            const opt = document.createElement('option');
+            opt.value = nombre;
+            opt.textContent = nombre;
+            sel.appendChild(opt);
+        });
+        sel.value = current;
+        // Mostrar cantidad de registros en el proyecto activo
+        const count = (proyectos[proyectoActivo] || []).length;
+        document.getElementById('tituloProyectoResultados').textContent = `${proyectoActivo} (${count} registros)`;
+    }
+
+    function cambiarProyecto(nuevo) {
+        if (nuevo === proyectoActivo) return;
+        if (!proyectos[nuevo]) {
+            proyectos[nuevo] = [];
+            localStorage.setItem('proyectos', JSON.stringify(proyectos));
+        }
+        proyectoActivo = nuevo;
+        localStorage.setItem('proyectoActivo', proyectoActivo);
+        actualizarSelectorProyectos();
+        // Limpiar selecciones
+        selectedCodigo = null;
+        reemplazoSeleccionado = null;
+        document.getElementById('checkReemplazo').checked = false;
+        actualizarSeleccion();
+        actualizarInfoReemplazo();
+        renderGaleria();
+        actualizarStatus(`Proyecto cambiado a ${nuevo}`, false);
+    }
+
+    function crearProyecto() {
+        const nombre = prompt('Nombre del nuevo proyecto (ej: PE-1S):');
+        if (!nombre) return;
+        if (proyectos[nombre]) {
+            alert('Ya existe un proyecto con ese nombre.');
+            return;
+        }
+        proyectos[nombre] = [];
+        localStorage.setItem('proyectos', JSON.stringify(proyectos));
+        cambiarProyecto(nombre);
+    }
+
+    function renombrarProyecto() {
+        const nuevo = prompt('Nuevo nombre para el proyecto:', proyectoActivo);
+        if (!nuevo || nuevo === proyectoActivo) return;
+        if (proyectos[nuevo]) {
+            alert('Ya existe un proyecto con ese nombre.');
+            return;
+        }
+        proyectos[nuevo] = proyectos[proyectoActivo];
+        delete proyectos[proyectoActivo];
+        localStorage.setItem('proyectos', JSON.stringify(proyectos));
+        proyectoActivo = nuevo;
+        localStorage.setItem('proyectoActivo', proyectoActivo);
+        actualizarSelectorProyectos();
+        renderGaleria();
+        actualizarStatus(`Proyecto renombrado a ${nuevo}`, false);
+    }
+
+    function eliminarProyecto() {
+        if (Object.keys(proyectos).length <= 1) {
+            alert('No puedes eliminar el único proyecto.');
+            return;
+        }
+        if (!confirm(`¿Eliminar el proyecto "${proyectoActivo}" y todos sus registros?`)) return;
+        delete proyectos[proyectoActivo];
+        localStorage.setItem('proyectos', JSON.stringify(proyectos));
+        const nuevo = Object.keys(proyectos)[0];
+        proyectoActivo = nuevo;
+        localStorage.setItem('proyectoActivo', proyectoActivo);
+        actualizarSelectorProyectos();
+        selectedCodigo = null;
+        reemplazoSeleccionado = null;
+        document.getElementById('checkReemplazo').checked = false;
+        actualizarSeleccion();
+        actualizarInfoReemplazo();
+        renderGaleria();
+        actualizarStatus(`Proyecto ${proyectoActivo} seleccionado`, false);
+    }
+
+    function getRegistrosActivos() {
+        return proyectos[proyectoActivo] || [];
+    }
+
+    function guardarProyectos() {
+        localStorage.setItem('proyectos', JSON.stringify(proyectos));
+        actualizarSelectorProyectos();
     }
 
     // ============================================================
@@ -950,42 +832,71 @@
             if (s) {
                 nombreEl.textContent = s.nombre;
                 codigoEl.textContent = s.codigo;
+                if (document.getElementById('checkReemplazo').checked) {
+                    actualizarInfoReemplazo();
+                }
                 return;
             }
         }
         nombreEl.textContent = '(ninguna)';
         codigoEl.textContent = '';
-    }
-
-    // ============================================================
-    // ORDEN PERSONALIZADO
-    // ============================================================
-    function guardarOrdenPersonalizado() {
-        localStorage.setItem('ordenPersonalizado', JSON.stringify(ordenPersonalizado));
-    }
-
-    function obtenerOrdenParaTipo(tipo) {
-        if (ordenPersonalizado[tipo] && ordenPersonalizado[tipo].length > 0) {
-            return ordenPersonalizado[tipo];
+        const checkbox = document.getElementById('checkReemplazo');
+        if (checkbox.checked) {
+            checkbox.checked = false;
+            reemplazoSeleccionado = null;
+            actualizarInfoReemplazo();
         }
-        return null;
     }
 
-    function aplicarOrdenPersonalizado(tipo, señales) {
-        const orden = obtenerOrdenParaTipo(tipo);
-        if (!orden) return señales;
-        const map = new Map(señales.map(s => [s.codigo, s]));
-        const ordenados = [];
-        for (const codigo of orden) {
-            if (map.has(codigo)) {
-                ordenados.push(map.get(codigo));
-                map.delete(codigo);
+    // ============================================================
+    // REEMPLAZO
+    // ============================================================
+    function actualizarInfoReemplazo() {
+        const infoDiv = document.getElementById('reemplazoInfo');
+        const nombreSpan = document.getElementById('reemplazoNombre');
+        const codigoSpan = document.getElementById('reemplazoCodigo');
+        if (reemplazoSeleccionado) {
+            const s = catalogo.find(s => s.codigo === reemplazoSeleccionado);
+            if (s) {
+                nombreSpan.textContent = s.nombre;
+                codigoSpan.textContent = s.codigo;
+                infoDiv.classList.add('visible');
+                actualizarObservacionesAutomaticas();
+                return;
             }
         }
-        for (const [_, s] of map) {
-            ordenados.push(s);
+        infoDiv.classList.remove('visible');
+        nombreSpan.textContent = '';
+        codigoSpan.textContent = '';
+    }
+
+    function eliminarTextoReemplazoObs() {
+        const obs = document.getElementById('inputObservaciones');
+        const texto = obs.value;
+        const lines = texto.split('\n');
+        const nuevas = lines.filter(line => !line.trim().startsWith('Reemplazar'));
+        obs.value = nuevas.join('\n').replace(/^\s+/, '').replace(/\n+$/, '');
+    }
+
+    function actualizarObservacionesAutomaticas() {
+        const checkbox = document.getElementById('checkReemplazo');
+        if (!checkbox.checked || !reemplazoSeleccionado || !selectedCodigo) return;
+        const obs = document.getElementById('inputObservaciones');
+        const senalActual = catalogo.find(s => s.codigo === selectedCodigo);
+        const senalDestino = catalogo.find(s => s.codigo === reemplazoSeleccionado);
+        if (!senalActual || !senalDestino) return;
+
+        let texto = obs.value;
+        const lines = texto.split('\n');
+        const nuevas = lines.filter(line => !line.trim().startsWith('Reemplazar'));
+        texto = nuevas.join('\n').replace(/^\s+/, '').replace(/\n+$/, '');
+
+        const autoMsg = `Reemplazar ${senalActual.codigo} - ${senalActual.nombre} por ${senalDestino.codigo} - ${senalDestino.nombre}`;
+        if (texto) {
+            obs.value = autoMsg + '\n' + texto;
+        } else {
+            obs.value = autoMsg;
         }
-        return ordenados;
     }
 
     // ============================================================
@@ -996,6 +907,7 @@
         card.className = `signal-card type-${s.tipo.replace(/ /g, '')}`;
         card.setAttribute('data-codigo', s.codigo);
         if (selectedCodigo === s.codigo) card.classList.add('selected');
+        if (reemplazoSeleccionado === s.codigo) card.classList.add('reemplazo');
 
         const imgSrc = imagenes[s.codigo] || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"%3E%3Crect width="100" height="100" fill="%23f1f5f9"/%3E%3Ctext x="50" y="55" font-size="24" text-anchor="middle" fill="%234b5563"%3E🚦%3C/text%3E%3C/svg%3E';
 
@@ -1004,18 +916,40 @@
             <div class="s-name">${s.nombre}</div>
             <div class="s-code">${s.codigo}</div>
             <span class="s-type-badge">${s.tipo}</span>
+            <span class="reemplazo-icon">→</span>
             <div class="card-actions">
                 <button class="upload-btn" data-codigo="${s.codigo}" title="Cargar foto">📷</button>
                 <button class="del-btn" data-codigo="${s.codigo}" title="Eliminar señal">✖</button>
             </div>
         `;
+
         card.addEventListener('click', (e) => {
             if (e.target.closest('.card-actions')) return;
+
+            const checkbox = document.getElementById('checkReemplazo');
+
+            if (checkbox.checked) {
+                if (s.codigo === selectedCodigo) {
+                    actualizarStatus('⚠️ No puedes reemplazar una señal por sí misma', true);
+                    return;
+                }
+                reemplazoSeleccionado = s.codigo;
+                actualizarInfoReemplazo();
+                renderGaleria();
+                actualizarStatus(`Reemplazo seleccionado: ${s.nombre}`, false);
+                return;
+            }
+
             selectedCodigo = s.codigo;
+            if (reemplazoSeleccionado) {
+                reemplazoSeleccionado = null;
+                actualizarInfoReemplazo();
+            }
             actualizarSeleccion();
             renderGaleria();
             actualizarStatus('Seleccionado: ' + s.nombre, false);
         });
+
         const uploadBtn = card.querySelector('.upload-btn');
         uploadBtn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -1037,6 +971,7 @@
             };
             input.click();
         });
+
         const delBtn = card.querySelector('.del-btn');
         delBtn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -1045,6 +980,7 @@
                 eliminarSenal(codigo);
             }
         });
+
         return card;
     }
 
@@ -1129,6 +1065,27 @@
         });
     }
 
+    function guardarOrdenPersonalizado() {
+        localStorage.setItem('ordenPersonalizado', JSON.stringify(ordenPersonalizado));
+    }
+
+    function aplicarOrdenPersonalizado(tipo, señales) {
+        const orden = ordenPersonalizado[tipo];
+        if (!orden || orden.length === 0) return señales;
+        const map = new Map(señales.map(s => [s.codigo, s]));
+        const ordenados = [];
+        for (const codigo of orden) {
+            if (map.has(codigo)) {
+                ordenados.push(map.get(codigo));
+                map.delete(codigo);
+            }
+        }
+        for (const [_, s] of map) {
+            ordenados.push(s);
+        }
+        return ordenados;
+    }
+
     // ============================================================
     // GESTIÓN DE CATÁLOGO
     // ============================================================
@@ -1146,6 +1103,11 @@
         if (selectedCodigo === codigo) {
             selectedCodigo = null;
             actualizarSeleccion();
+        }
+        if (reemplazoSeleccionado === codigo) {
+            reemplazoSeleccionado = null;
+            actualizarInfoReemplazo();
+            document.getElementById('checkReemplazo').checked = false;
         }
         llenarSubtipos();
         renderGaleria();
@@ -1199,6 +1161,10 @@
                 selectedCodigo = codigo;
                 actualizarSeleccion();
             }
+            if (reemplazoSeleccionado === codigoViejo) {
+                reemplazoSeleccionado = codigo;
+                actualizarInfoReemplazo();
+            }
         }
         localStorage.setItem('catalogo', JSON.stringify(catalogo));
         guardarOrdenPersonalizado();
@@ -1209,7 +1175,7 @@
     }
 
     // ============================================================
-    // MODAL PARA AGREGAR/EDITAR SEÑAL
+    // MODAL AGREGAR/EDITAR SEÑAL
     // ============================================================
     let editandoCodigo = null;
 
@@ -1225,7 +1191,7 @@
         document.getElementById('modalAgregarSenal').classList.add('open');
     }
 
-    function abrirModalEditar(codigo) {
+    function abrirModalEditarSenal(codigo) {
         const s = catalogo.find(s => s.codigo === codigo);
         if (!s) return;
         editandoCodigo = codigo;
@@ -1281,21 +1247,25 @@
     }
 
     // ============================================================
-    // REGISTRO
+    // REGISTRO (sin campo RUTA, usa proyecto activo como ruta)
     // ============================================================
     function agregarRegistro() {
         if (!selectedCodigo) {
             actualizarStatus('⚠️ Selecciona una señal primero', true);
             return;
         }
-        const ruta = document.getElementById('inputRuta').value.trim();
         const progresiva = document.getElementById('inputProgresiva').value.trim();
         const lado = document.getElementById('inputLado').value;
         const condicion = document.getElementById('inputCondicion').value;
         const observaciones = document.getElementById('inputObservaciones').value.trim();
+        const checkbox = document.getElementById('checkReemplazo');
+        let reemplazo = '';
+        if (checkbox.checked && reemplazoSeleccionado) {
+            reemplazo = reemplazoSeleccionado;
+        }
 
-        if (!ruta || !progresiva) {
-            actualizarStatus('⚠️ Ruta y Progresiva son obligatorios', true);
+        if (!progresiva) {
+            actualizarStatus('⚠️ Progresiva es obligatoria', true);
             return;
         }
 
@@ -1307,7 +1277,7 @@
 
         const registro = {
             id: nextId++,
-            ruta,
+            ruta: proyectoActivo,
             progresiva,
             lado,
             codigo: senal.codigo,
@@ -1315,34 +1285,46 @@
             subtipo: senal.subtipo || '',
             descripcion: senal.nombre,
             condicion,
+            reemplazo_codigo: reemplazo || '',
             observaciones
         };
-        registros.push(registro);
-        localStorage.setItem('registros', JSON.stringify(registros));
+        proyectos[proyectoActivo].push(registro);
+        guardarProyectos();
 
         document.getElementById('inputObservaciones').value = '';
-        actualizarStatus(`✅ Registrado: ${senal.nombre} - ${condicion}`, false);
+        document.getElementById('checkReemplazo').checked = false;
+        reemplazoSeleccionado = null;
+        actualizarInfoReemplazo();
+        renderGaleria();
+        actualizarStatus(`✅ Registrado en ${proyectoActivo}: ${senal.nombre}`, false);
     }
 
     function eliminarRegistro(id) {
         if (!confirm('¿Eliminar este registro?')) return;
-        registros = registros.filter(r => r.id !== id);
-        localStorage.setItem('registros', JSON.stringify(registros));
+        const regs = getRegistrosActivos();
+        const index = regs.findIndex(r => r.id === id);
+        if (index !== -1) {
+            regs.splice(index, 1);
+            guardarProyectos();
+        }
         if (document.getElementById('modalResultados').classList.contains('open')) renderTablaResultados();
         actualizarStatus('Registro eliminado', false);
     }
 
     function eliminarTodos() {
-        if (!confirm('¿Eliminar TODOS los registros?')) return;
-        registros = [];
-        localStorage.setItem('registros', JSON.stringify(registros));
+        if (!confirm(`¿Eliminar TODOS los registros del proyecto "${proyectoActivo}"?`)) return;
+        proyectos[proyectoActivo] = [];
+        guardarProyectos();
         if (document.getElementById('modalResultados').classList.contains('open')) renderTablaResultados();
-        actualizarStatus('Todos los registros eliminados', false);
+        actualizarStatus('Todos los registros del proyecto eliminados', false);
     }
 
     function limpiarSeleccion() {
         selectedCodigo = null;
+        reemplazoSeleccionado = null;
+        document.getElementById('checkReemplazo').checked = false;
         actualizarSeleccion();
+        actualizarInfoReemplazo();
         renderGaleria();
         actualizarStatus('Selección limpiada', false);
     }
@@ -1351,11 +1333,11 @@
     // EDICIÓN DE REGISTROS
     // ============================================================
     function abrirModalEditarRegistro(id) {
-        const registro = registros.find(r => r.id === id);
+        const regs = getRegistrosActivos();
+        const registro = regs.find(r => r.id === id);
         if (!registro) return;
         editandoRegistroId = id;
 
-        // Llenar el selector de señales
         const select = document.getElementById('editCodigo');
         select.innerHTML = '';
         catalogo.forEach(s => {
@@ -1366,6 +1348,37 @@
             select.appendChild(opt);
         });
 
+        const checkbox = document.getElementById('editCheckReemplazo');
+        const selectReempl = document.getElementById('editReemplazo');
+        const tieneReemplazo = registro.reemplazo_codigo && registro.reemplazo_codigo !== '';
+        checkbox.checked = tieneReemplazo;
+        llenarSelectReemplazo('editReemplazo', registro.codigo);
+        if (tieneReemplazo) {
+            selectReempl.style.display = 'block';
+            selectReempl.value = registro.reemplazo_codigo;
+        } else {
+            selectReempl.style.display = 'none';
+            selectReempl.value = '';
+        }
+
+        checkbox.onchange = function() {
+            if (this.checked) {
+                selectReempl.style.display = 'block';
+                llenarSelectReemplazo('editReemplazo', document.getElementById('editCodigo').value);
+            } else {
+                selectReempl.style.display = 'none';
+                selectReempl.value = '';
+            }
+        };
+
+        document.getElementById('editCodigo').onchange = function() {
+            const codigoActual = this.value;
+            llenarSelectReemplazo('editReemplazo', codigoActual);
+            if (checkbox.checked) {
+                selectReempl.style.display = 'block';
+            }
+        };
+
         document.getElementById('editRuta').value = registro.ruta || '';
         document.getElementById('editProgresiva').value = registro.progresiva || '';
         document.getElementById('editLado').value = registro.lado || 'Izquierdo';
@@ -1375,9 +1388,28 @@
         document.getElementById('modalEditarRegistro').classList.add('open');
     }
 
+    function llenarSelectReemplazo(idSelect, excluirCodigo) {
+        const sel = document.getElementById(idSelect);
+        if (!sel) return;
+        const current = sel.value;
+        sel.innerHTML = '<option value="">(ninguno)</option>';
+        catalogo.forEach(s => {
+            if (s.codigo === excluirCodigo) return;
+            const opt = document.createElement('option');
+            opt.value = s.codigo;
+            opt.textContent = `${s.codigo} - ${s.nombre}`;
+            sel.appendChild(opt);
+        });
+        sel.value = current;
+        if (sel.value && !Array.from(sel.options).some(o => o.value === sel.value)) {
+            sel.value = '';
+        }
+    }
+
     function guardarEdicionRegistro() {
         const id = editandoRegistroId;
-        const registro = registros.find(r => r.id === id);
+        const regs = getRegistrosActivos();
+        const registro = regs.find(r => r.id === id);
         if (!registro) return;
 
         const nuevoCodigo = document.getElementById('editCodigo').value;
@@ -1386,6 +1418,12 @@
         const nuevoLado = document.getElementById('editLado').value;
         const nuevaCondicion = document.getElementById('editCondicion').value;
         const nuevasObs = document.getElementById('editObservaciones').value.trim();
+        const checkbox = document.getElementById('editCheckReemplazo');
+        const selectReempl = document.getElementById('editReemplazo');
+        let nuevoReemplazo = '';
+        if (checkbox.checked) {
+            nuevoReemplazo = selectReempl.value || '';
+        }
 
         if (!nuevaRuta || !nuevaProgresiva) {
             document.getElementById('mensajeEdicion').textContent = '⚠️ Ruta y Progresiva son obligatorios.';
@@ -1393,7 +1431,6 @@
             return;
         }
 
-        // Buscar la señal seleccionada
         const senal = catalogo.find(s => s.codigo === nuevoCodigo);
         if (!senal) {
             document.getElementById('mensajeEdicion').textContent = '⚠️ Señal no encontrada.';
@@ -1401,18 +1438,18 @@
             return;
         }
 
-        // Actualizar registro
         registro.ruta = nuevaRuta;
         registro.progresiva = nuevaProgresiva;
         registro.lado = nuevoLado;
         registro.condicion = nuevaCondicion;
         registro.observaciones = nuevasObs;
+        registro.reemplazo_codigo = nuevoReemplazo || '';
         registro.codigo = senal.codigo;
         registro.tipo = senal.tipo;
         registro.subtipo = senal.subtipo || '';
         registro.descripcion = senal.nombre;
 
-        localStorage.setItem('registros', JSON.stringify(registros));
+        guardarProyectos();
         cerrarModalEditarRegistro();
         if (document.getElementById('modalResultados').classList.contains('open')) renderTablaResultados();
         actualizarStatus(`✅ Registro ${id} actualizado`, false);
@@ -1430,6 +1467,8 @@
     function cerrarModalEditarRegistro() {
         document.getElementById('modalEditarRegistro').classList.remove('open');
         editandoRegistroId = null;
+        document.getElementById('editCodigo').onchange = null;
+        document.getElementById('editCheckReemplazo').onchange = null;
     }
 
     // ============================================================
@@ -1444,13 +1483,14 @@
         const tbody = document.getElementById('tbodyResultados');
         const sinReg = document.getElementById('sinRegistros');
         tbody.innerHTML = '';
-        if (registros.length === 0) {
+        const regs = getRegistrosActivos();
+        if (regs.length === 0) {
             sinReg.style.display = 'block';
             return;
         }
         sinReg.style.display = 'none';
 
-        let datos = [...registros];
+        let datos = [...regs];
         if (ordenProgresiva) {
             datos.sort((a, b) => {
                 const va = a.progresiva || '';
@@ -1462,6 +1502,11 @@
 
         datos.forEach((r, idx) => {
             const tr = document.createElement('tr');
+            let reemplazoTexto = '-';
+            if (r.reemplazo_codigo) {
+                const sDest = catalogo.find(s => s.codigo === r.reemplazo_codigo);
+                if (sDest) reemplazoTexto = `${sDest.codigo} - ${sDest.nombre}`;
+            }
             tr.innerHTML = `
                 <td>${idx+1}</td>
                 <td>${r.ruta || ''}</td>
@@ -1472,6 +1517,7 @@
                 <td>${r.subtipo || ''}</td>
                 <td>${r.descripcion || ''}</td>
                 <td>${r.condicion || ''}</td>
+                <td>${reemplazoTexto}</td>
                 <td>${r.observaciones || ''}</td>
                 <td>
                     <button class="btn-action btn-edit" data-id="${r.id}" title="Editar">✏️</button>
@@ -1481,7 +1527,6 @@
             tbody.appendChild(tr);
         });
 
-        // Eventos de botones
         tbody.querySelectorAll('.btn-edit').forEach(btn => {
             btn.addEventListener('click', () => {
                 const id = parseInt(btn.dataset.id);
@@ -1512,33 +1557,45 @@
     }
 
     // ============================================================
-    // EXPORTAR / IMPORTAR
+    // EXPORTAR EXCEL (SOLO DEL PROYECTO ACTIVO)
     // ============================================================
     function exportarExcel() {
-        if (registros.length === 0) {
-            alert('No hay registros para exportar.');
+        const regs = getRegistrosActivos();
+        if (regs.length === 0) {
+            alert('No hay registros en este proyecto para exportar.');
             return;
         }
-        const data = registros.map((r, idx) => ({
-            'ÍTEM': idx+1,
-            'RUTA': r.ruta || '',
-            'PROGRESIVA': r.progresiva || '',
-            'LADO': r.lado || '',
-            'CÓDIGO MTC': r.codigo || '',
-            'TIPO': r.tipo || '',
-            'SUBTIPO': r.subtipo || '',
-            'DESCRIPCIÓN': r.descripcion || '',
-            'CONDICIÓN': r.condicion || '',
-            'OBSERVACIONES': r.observaciones || ''
-        }));
+        const data = regs.map((r, idx) => {
+            let reemplazoTexto = '';
+            if (r.reemplazo_codigo) {
+                const sDest = catalogo.find(s => s.codigo === r.reemplazo_codigo);
+                if (sDest) reemplazoTexto = `${sDest.codigo} - ${sDest.nombre}`;
+            }
+            return {
+                'ÍTEM': idx+1,
+                'RUTA': r.ruta || '',
+                'PROGRESIVA': r.progresiva || '',
+                'LADO': r.lado || '',
+                'CÓDIGO MTC': r.codigo || '',
+                'TIPO': r.tipo || '',
+                'SUBTIPO': r.subtipo || '',
+                'DESCRIPCIÓN': r.descripcion || '',
+                'CONDICIÓN': r.condicion || '',
+                'REEMPLAZAR POR': reemplazoTexto || '',
+                'OBSERVACIONES': r.observaciones || ''
+            };
+        });
         const ws = XLSX.utils.json_to_sheet(data);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, 'Registros');
         const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
         const blob = new Blob([wbout], { type: 'application/octet-stream' });
-        saveAs(blob, 'registro_senaleticas.xlsx');
+        saveAs(blob, `registros_${proyectoActivo}.xlsx`);
     }
 
+    // ============================================================
+    // IMPORTAR CATÁLOGO
+    // ============================================================
     function importarCatalogo(file) {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -1619,6 +1676,14 @@
     document.addEventListener('DOMContentLoaded', () => {
         init();
 
+        // Selector de proyecto
+        document.getElementById('selectorProyecto').addEventListener('change', function() {
+            cambiarProyecto(this.value);
+        });
+        document.getElementById('btnNuevoProyecto').addEventListener('click', crearProyecto);
+        document.getElementById('btnRenombrarProyecto').addEventListener('click', renombrarProyecto);
+        document.getElementById('btnEliminarProyecto').addEventListener('click', eliminarProyecto);
+
         // Filtros
         document.getElementById('filtroTipo').addEventListener('change', renderGaleria);
         document.getElementById('filtroSubtipo').addEventListener('change', renderGaleria);
@@ -1666,7 +1731,7 @@
         document.getElementById('btnEliminarRegistroDesdeEdicion').addEventListener('click', eliminarRegistroDesdeEdicion);
 
         // Enter para agregar registro
-        document.querySelectorAll('#inputRuta, #inputProgresiva, #inputObservaciones').forEach(el => {
+        document.querySelectorAll('#inputProgresiva, #inputObservaciones').forEach(el => {
             el.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     e.preventDefault();
@@ -1680,7 +1745,7 @@
             const card = e.target.closest('.signal-card');
             if (!card) return;
             const codigo = card.dataset.codigo;
-            if (codigo) abrirModalEditar(codigo);
+            if (codigo) abrirModalEditarSenal(codigo);
         });
     });
 </script>
