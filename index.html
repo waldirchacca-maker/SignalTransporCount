@@ -12,7 +12,6 @@
         html, body { height:100%; font-family:'Segoe UI',Roboto,system-ui,sans-serif; background:#f0f2f5; color:#1e293b; overflow:hidden; }
         .app { display:flex; flex-direction:column; height:100vh; }
 
-        /* TOP BAR con selector de proyecto */
         .top-bar {
             background:#0b2a45; color:#fff; padding:6px 20px;
             display:flex; align-items:center; justify-content:space-between; flex-shrink:0; flex-wrap:wrap; gap:6px;
@@ -161,7 +160,6 @@
             font-size:0.8rem; background:#fff; width:100%;
         }
         .register-bar .field textarea { resize:vertical; min-height:32px; max-height:50px; }
-        .register-bar .field-ruta { flex:1.2; }
         .register-bar .field-progresiva { flex:1; }
         .register-bar .field-lado { flex:0.7; }
         .register-bar .field-condicion { flex:0.9; }
@@ -314,7 +312,7 @@
             <button class="btn btn-primary" id="btnExportarExcel">📤 Exportar</button>
             <button class="btn btn-danger" id="btnEliminarTodos">🗑️ Limpiar proyecto</button>
             <button class="btn btn-warning" id="btnResetCatalogo">↺ Reset</button>
-            <button class="btn btn-outline" id="btnImportarCatalogo">📂 Importar</button>
+            <button class="btn btn-outline" id="btnImportarArchivo">📂 Importar</button>
             <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none;">
         </div>
     </header>
@@ -558,7 +556,7 @@
     // ============================================================
     let catalogo = [];
     let imagenes = {};
-    let proyectos = {}; // { nombreProyecto: [registros] }
+    let proyectos = {};
     let proyectoActivo = 'PE-1N';
     let nextId = 1;
     let selectedCodigo = null;
@@ -571,7 +569,6 @@
     // INICIALIZACIÓN
     // ============================================================
     function init() {
-        // Cargar catálogo
         const storedCatalogo = localStorage.getItem('catalogo');
         if (storedCatalogo) {
             try { catalogo = JSON.parse(storedCatalogo); } catch(e) { catalogo = buildInitialCatalog(); }
@@ -579,19 +576,16 @@
             catalogo = buildInitialCatalog();
         }
 
-        // Cargar imágenes
         const storedImagenes = localStorage.getItem('imagenes');
         if (storedImagenes) {
             try { imagenes = JSON.parse(storedImagenes); } catch(e) { imagenes = {}; }
         }
 
-        // Cargar proyectos
         const storedProyectos = localStorage.getItem('proyectos');
         if (storedProyectos) {
             try {
                 const parsed = JSON.parse(storedProyectos);
                 proyectos = parsed;
-                // Asegurar que existe al menos un proyecto
                 if (Object.keys(proyectos).length === 0) {
                     proyectos = { 'PE-1N': [] };
                 }
@@ -602,7 +596,6 @@
             proyectos = { 'PE-1N': [] };
         }
 
-        // Cargar proyecto activo
         const storedActivo = localStorage.getItem('proyectoActivo');
         if (storedActivo && proyectos[storedActivo]) {
             proyectoActivo = storedActivo;
@@ -610,20 +603,17 @@
             proyectoActivo = Object.keys(proyectos)[0] || 'PE-1N';
         }
 
-        // Cargar orden personalizado
         const storedOrden = localStorage.getItem('ordenPersonalizado');
         if (storedOrden) {
             try { ordenPersonalizado = JSON.parse(storedOrden); } catch(e) { ordenPersonalizado = {}; }
         }
 
-        // Cargar nextId desde todos los registros
         let maxId = 0;
         Object.values(proyectos).forEach(regs => {
             regs.forEach(r => { if (r.id > maxId) maxId = r.id; });
         });
         nextId = maxId + 1;
 
-        // Si el catálogo está vacío, restaurar
         if (catalogo.length === 0) {
             catalogo = buildInitialCatalog();
             localStorage.setItem('catalogo', JSON.stringify(catalogo));
@@ -638,7 +628,6 @@
         reemplazoSeleccionado = null;
         actualizarInfoReemplazo();
 
-        // Evento checkbox
         document.getElementById('checkReemplazo').addEventListener('change', function() {
             if (!this.checked) {
                 reemplazoSeleccionado = null;
@@ -693,7 +682,6 @@
             sel.appendChild(opt);
         });
         sel.value = current;
-        // Mostrar cantidad de registros en el proyecto activo
         const count = (proyectos[proyectoActivo] || []).length;
         document.getElementById('tituloProyectoResultados').textContent = `${proyectoActivo} (${count} registros)`;
     }
@@ -707,7 +695,6 @@
         proyectoActivo = nuevo;
         localStorage.setItem('proyectoActivo', proyectoActivo);
         actualizarSelectorProyectos();
-        // Limpiar selecciones
         selectedCodigo = null;
         reemplazoSeleccionado = null;
         document.getElementById('checkReemplazo').checked = false;
@@ -1247,7 +1234,7 @@
     }
 
     // ============================================================
-    // REGISTRO (sin campo RUTA, usa proyecto activo como ruta)
+    // REGISTRO
     // ============================================================
     function agregarRegistro() {
         if (!selectedCodigo) {
@@ -1557,7 +1544,7 @@
     }
 
     // ============================================================
-    // EXPORTAR EXCEL (SOLO DEL PROYECTO ACTIVO)
+    // EXPORTAR EXCEL
     // ============================================================
     function exportarExcel() {
         const regs = getRegistrosActivos();
@@ -1594,9 +1581,9 @@
     }
 
     // ============================================================
-    // IMPORTAR CATÁLOGO
+    // IMPORTAR ARCHIVO (registros o catálogo)
     // ============================================================
-    function importarCatalogo(file) {
+    function importarArchivo(file) {
         const reader = new FileReader();
         reader.onload = (e) => {
             try {
@@ -1604,60 +1591,182 @@
                 const workbook = XLSX.read(data, { type: 'array' });
                 const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                 const json = XLSX.utils.sheet_to_json(firstSheet);
+
                 if (json.length === 0) {
-                    actualizarStatus('Archivo vacío', true);
+                    actualizarStatus('Archivo vacío o sin datos', true);
                     return;
                 }
+
+                // Detectar tipo de archivo por columnas
                 const headers = Object.keys(json[0]);
-                const mapCol = (posibles) => {
-                    for (let h of headers) {
-                        const lower = h.toLowerCase().trim();
-                        for (let p of posibles) {
-                            if (lower === p || lower.includes(p)) return h;
-                        }
-                    }
-                    return null;
-                };
-                const colNombre = mapCol(['nombre', 'nome']);
-                const colCodigo = mapCol(['código', 'codigo', 'code']);
-                const colTipo = mapCol(['tipo', 'type']);
-                const colSubtipo = mapCol(['subtipo', 'sub-tipo', 'sub tipo']);
+                const isRegistros = headers.some(h => /CÓDIGO MTC/i.test(h) || /RUTA/i.test(h) || /PROGRESIVA/i.test(h));
+                const isCatalogo = headers.some(h => /Nombre/i.test(h) && /Código/i.test(h) && /Tipo de Señal/i.test(h));
 
-                if (!colNombre || !colCodigo || !colTipo) {
-                    actualizarStatus('Faltan columnas: Nombre, Código, Tipo', true);
-                    return;
+                if (isRegistros) {
+                    importarRegistros(json);
+                } else if (isCatalogo) {
+                    importarCatalogo(json);
+                } else {
+                    actualizarStatus('No se pudo identificar el tipo de archivo (registros o catálogo).', true);
                 }
-                const nuevos = json.map(row => ({
-                    nombre: String(row[colNombre] || '').trim(),
-                    codigo: String(row[colCodigo] || '').trim(),
-                    tipo: String(row[colTipo] || '').trim(),
-                    subtipo: colSubtipo ? String(row[colSubtipo] || '').trim() : ''
-                })).filter(s => s.nombre && s.codigo && s.tipo);
-
-                if (nuevos.length === 0) {
-                    actualizarStatus('No se extrajeron señales válidas', true);
-                    return;
-                }
-                catalogo = nuevos;
-                localStorage.setItem('catalogo', JSON.stringify(catalogo));
-                ordenPersonalizado = {};
-                guardarOrdenPersonalizado();
-                const codigosExistentes = new Set(catalogo.map(s => s.codigo));
-                Object.keys(imagenes).forEach(key => {
-                    if (!codigosExistentes.has(key)) delete imagenes[key];
-                });
-                localStorage.setItem('imagenes', JSON.stringify(imagenes));
-                llenarSubtipos();
-                renderGaleria();
-                actualizarContadores();
-                actualizarStatus(`✅ Importados ${nuevos.length} señales`, false);
             } catch(err) {
-                actualizarStatus('Error al leer archivo: ' + err.message, true);
+                actualizarStatus('Error al leer el archivo: ' + err.message, true);
             }
         };
         reader.readAsArrayBuffer(file);
     }
 
+    function importarRegistros(json) {
+        let contador = 0;
+        const regs = getRegistrosActivos();
+
+        // Mapeo de columnas (con tildes y espacios)
+        const mapCol = (posibles) => {
+            const headers = Object.keys(json[0]);
+            for (let h of headers) {
+                const lower = h.trim().toLowerCase();
+                for (let p of posibles) {
+                    if (lower === p || lower.includes(p)) return h;
+                }
+            }
+            return null;
+        };
+
+        const colRuta = mapCol(['ruta']);
+        const colProgresiva = mapCol(['progresiva']);
+        const colLado = mapCol(['lado']);
+        const colCodigo = mapCol(['código mtc', 'codigo mtc', 'código', 'codigo']);
+        const colTipo = mapCol(['tipo']);
+        const colSubtipo = mapCol(['subtipo']);
+        const colDescripcion = mapCol(['descripción', 'descripcion']);
+        const colCondicion = mapCol(['condición', 'condicion']);
+        const colReemplazo = mapCol(['reemplazar por']);
+        const colObservaciones = mapCol(['observaciones']);
+
+        if (!colRuta || !colProgresiva || !colCodigo) {
+            actualizarStatus('Faltan columnas obligatorias: RUTA, PROGRESIVA, CÓDIGO MTC.', true);
+            return;
+        }
+
+        json.forEach(row => {
+            const ruta = String(row[colRuta] || '').trim();
+            const progresiva = String(row[colProgresiva] || '').trim();
+            const lado = String(row[colLado] || '').trim() || 'Izquierdo';
+            const codigo = String(row[colCodigo] || '').trim();
+            const tipo = String(row[colTipo] || '').trim();
+            const subtipo = String(row[colSubtipo] || '').trim();
+            const descripcion = String(row[colDescripcion] || '').trim();
+            const condicion = String(row[colCondicion] || '').trim() || 'Señaletica Existente a Cambiar';
+            let reemplazo = '';
+            const reemplazoTexto = String(row[colReemplazo] || '').trim();
+            if (reemplazoTexto) {
+                // Intentar extraer código del formato "CÓDIGO - NOMBRE"
+                const match = reemplazoTexto.match(/^([A-Z0-9\-]+)\s*-\s*/i);
+                if (match) {
+                    reemplazo = match[1].toUpperCase();
+                }
+            }
+            const observaciones = String(row[colObservaciones] || '').trim();
+
+            if (!ruta || !progresiva || !codigo) return;
+
+            // Buscar la señal en el catálogo
+            const senal = catalogo.find(s => s.codigo === codigo);
+            if (!senal) {
+                // Si no existe, agregarla al catálogo (solo si tiene tipo)
+                if (tipo) {
+                    const nueva = { nombre: descripcion || codigo, codigo, tipo, subtipo: subtipo || '' };
+                    catalogo.push(nueva);
+                    localStorage.setItem('catalogo', JSON.stringify(catalogo));
+                } else {
+                    return; // no se puede importar sin tipo
+                }
+            }
+
+            // Buscar la señal de reemplazo
+            let reemplazoValido = '';
+            if (reemplazo) {
+                const sDest = catalogo.find(s => s.codigo === reemplazo);
+                if (sDest) reemplazoValido = reemplazo;
+            }
+
+            // Asignar nuevo ID
+            const nuevoId = nextId++;
+
+            const registro = {
+                id: nuevoId,
+                ruta,
+                progresiva,
+                lado,
+                codigo,
+                tipo: senal ? senal.tipo : tipo,
+                subtipo: senal ? senal.subtipo : (subtipo || ''),
+                descripcion: senal ? senal.nombre : descripcion,
+                condicion,
+                reemplazo_codigo: reemplazoValido,
+                observaciones
+            };
+            regs.push(registro);
+            contador++;
+        });
+
+        guardarProyectos();
+        actualizarStatus(`✅ Importados ${contador} registros al proyecto "${proyectoActivo}".`, false);
+        if (document.getElementById('modalResultados').classList.contains('open')) renderTablaResultados();
+        renderGaleria();
+    }
+
+    function importarCatalogo(json) {
+        const headers = Object.keys(json[0]);
+        const mapCol = (posibles) => {
+            for (let h of headers) {
+                const lower = h.trim().toLowerCase();
+                for (let p of posibles) {
+                    if (lower === p || lower.includes(p)) return h;
+                }
+            }
+            return null;
+        };
+        const colNombre = mapCol(['nombre', 'nome']);
+        const colCodigo = mapCol(['código', 'codigo', 'code']);
+        const colTipo = mapCol(['tipo', 'type']);
+        const colSubtipo = mapCol(['subtipo', 'sub-tipo', 'sub tipo']);
+
+        if (!colNombre || !colCodigo || !colTipo) {
+            actualizarStatus('Faltan columnas: Nombre, Código, Tipo de Señal', true);
+            return;
+        }
+
+        const nuevos = json.map(row => ({
+            nombre: String(row[colNombre] || '').trim(),
+            codigo: String(row[colCodigo] || '').trim(),
+            tipo: String(row[colTipo] || '').trim(),
+            subtipo: colSubtipo ? String(row[colSubtipo] || '').trim() : ''
+        })).filter(s => s.nombre && s.codigo && s.tipo);
+
+        if (nuevos.length === 0) {
+            actualizarStatus('No se extrajeron señales válidas.', true);
+            return;
+        }
+
+        catalogo = nuevos;
+        localStorage.setItem('catalogo', JSON.stringify(catalogo));
+        ordenPersonalizado = {};
+        guardarOrdenPersonalizado();
+        const codigosExistentes = new Set(catalogo.map(s => s.codigo));
+        Object.keys(imagenes).forEach(key => {
+            if (!codigosExistentes.has(key)) delete imagenes[key];
+        });
+        localStorage.setItem('imagenes', JSON.stringify(imagenes));
+        llenarSubtipos();
+        renderGaleria();
+        actualizarContadores();
+        actualizarStatus(`✅ Importadas ${nuevos.length} señales al catálogo.`, false);
+    }
+
+    // ============================================================
+    // RESET CATÁLOGO
+    // ============================================================
     function resetCatalogo() {
         if (!confirm('Restaurar el catálogo inicial (solo las 25 señales) ?')) return;
         catalogo = buildInitialCatalog();
@@ -1700,12 +1809,12 @@
         document.getElementById('btnExportarExcel').addEventListener('click', exportarExcel);
         document.getElementById('btnEliminarTodos').addEventListener('click', eliminarTodos);
         document.getElementById('btnResetCatalogo').addEventListener('click', resetCatalogo);
-        document.getElementById('btnImportarCatalogo').addEventListener('click', () => {
+        document.getElementById('btnImportarArchivo').addEventListener('click', () => {
             document.getElementById('fileInput').click();
         });
         document.getElementById('fileInput').addEventListener('change', (e) => {
             if (e.target.files.length > 0) {
-                importarCatalogo(e.target.files[0]);
+                importarArchivo(e.target.files[0]);
                 e.target.value = '';
             }
         });
