@@ -203,33 +203,37 @@
         }
         .register-bar .status-msg.error { color:#dc2626; }
 
-        /* ===== MODALES GRANDES ===== */
+        /* ===== MODALES ===== */
         .modal-overlay {
             display:none; position:fixed; top:0; left:0; right:0; bottom:0;
             background:rgba(0,0,0,0.6); z-index:1000;
-            justify-content:center; align-items:center; padding:20px;
+            justify-content:center; align-items:center; padding:10px;
         }
         .modal-overlay.open { display:flex; }
 
+        /* Modal de resultados: ocupa todo el ancho y alto disponible */
         .modal-box {
-            background:#fff; border-radius:12px; padding:20px;
+            background:#fff; border-radius:8px; padding:12px;
             display:flex; flex-direction:column; box-shadow:0 25px 60px rgba(0,0,0,0.4);
-            width:95vw; max-width:1400px; max-height:92vh;
+            width:100%; max-width:100%; height:100%; max-height:100%;
             overflow:hidden;
         }
 
+        /* Modal pequeño (para edición, etc.) */
         .modal-box.small {
             max-width:800px;
             width:100%;
             max-height:90vh;
+            height:auto;
         }
 
         .modal-box .modal-header {
-            display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-shrink:0;
+            display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-shrink:0;
         }
-        .modal-box .modal-header h2 { font-size:1.5rem; }
+        .modal-box .modal-header h2 { font-size:1.4rem; }
         .modal-box .modal-header .close-btn {
             background:none; border:none; font-size:2.2rem; cursor:pointer; color:#6b7280; line-height:1;
+            padding:0 8px;
         }
         .modal-box .modal-header .close-btn:hover { color:#1e293b; }
 
@@ -256,29 +260,42 @@
             border-radius:6px; cursor:pointer; font-weight:600;
         }
 
-        /* ===== TABLA DE RESULTADOS (con miniatura) ===== */
+        /* ===== TABLA DE RESULTADOS ===== */
         .table-wrap {
             overflow:auto; flex:1;
             font-size:1rem;
+            /* Para que ocupe todo el espacio disponible */
+            min-height:0;
         }
         .table-wrap table {
-            width:100%; border-collapse:collapse;
+            width:100%;
+            border-collapse:collapse;
+            /* Asegurar que las columnas se ajusten al contenido */
+            table-layout:auto;
         }
         .table-wrap th {
-            background:#0b2a45; color:#fff; padding:12px 16px;
-            position:sticky; top:0; z-index:2; white-space:nowrap; font-size:0.95rem;
+            background:#0b2a45; color:#fff; padding:10px 12px;
+            position:sticky; top:0; z-index:2;
+            white-space:nowrap;
+            font-size:0.9rem;
+            text-align:left;
         }
         .table-wrap th.sortable { cursor:pointer; user-select:none; }
         .table-wrap th.sortable::after { content:' ↕'; font-size:0.8rem; opacity:0.6; }
         .table-wrap th.sortable.asc::after { content:' ↑'; opacity:1; }
         .table-wrap th.sortable.desc::after { content:' ↓'; opacity:1; }
         .table-wrap td {
-            padding:10px 14px; border-bottom:1px solid #e5e7eb; vertical-align:middle; font-size:0.95rem;
+            padding:8px 10px;
+            border-bottom:1px solid #e5e7eb;
+            vertical-align:middle;
+            font-size:0.9rem;
+            /* Permitir que el texto se envuelva si es necesario */
+            word-break:break-word;
         }
         .table-wrap tr:hover { background:#f1f5f9; }
         .table-wrap .btn-action {
             background:transparent; border:none; cursor:pointer; font-size:1.2rem;
-            padding:4px 8px; transition:0.2s;
+            padding:4px 6px; transition:0.2s;
         }
         .table-wrap .btn-action:hover { transform:scale(1.2); }
         .table-wrap .btn-del { color:#dc2626; }
@@ -297,11 +314,13 @@
             display:inline-block;
             vertical-align:middle;
             margin-right:6px;
+            flex-shrink:0;
         }
         .signal-code-cell {
             display:flex;
             align-items:center;
             gap:4px;
+            white-space:nowrap;
         }
 
         @media (max-width:768px) {
@@ -313,9 +332,9 @@
             .register-bar .field { min-width:unset; }
             .register-bar .field-seleccion { order:-1; }
             .register-bar .btn-group { justify-content:flex-end; }
-            .modal-box { width:100vw; max-height:95vh; padding:12px; border-radius:0; }
+            .modal-box { padding:10px; }
             .table-wrap { font-size:0.85rem; }
-            .table-wrap th, .table-wrap td { padding:8px 10px; }
+            .table-wrap th, .table-wrap td { padding:6px 8px; }
             .signal-thumb { width:24px; height:24px; }
         }
         @media (max-width:480px) {
@@ -422,7 +441,7 @@
     </div>
 </div>
 
-<!-- MODAL RESULTADOS (grande) -->
+<!-- MODAL RESULTADOS (ocupa 100%) -->
 <div class="modal-overlay" id="modalResultados">
     <div class="modal-box">
         <div class="modal-header">
@@ -1496,7 +1515,7 @@
     }
 
     // ============================================================
-    // MODAL RESULTADOS (con miniatura)
+    // MODAL RESULTADOS (con miniatura y ajuste 100%)
     // ============================================================
     function mostrarResultados() {
         document.getElementById('modalResultados').classList.add('open');
@@ -1532,7 +1551,6 @@
                 if (sDest) reemplazoTexto = `${sDest.codigo} - ${sDest.nombre}`;
             }
 
-            // Obtener imagen de la señal
             let imgSrc = imagenes[r.codigo] || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"%3E%3Crect width="32" height="32" fill="%23e5e7eb"/%3E%3Ctext x="16" y="22" font-size="16" text-anchor="middle" fill="%236b7280"%3E🚦%3C/text%3E%3C/svg%3E';
 
             tr.innerHTML = `
