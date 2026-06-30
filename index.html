@@ -3,16 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro de Señaléticas - Edición 80%</title>
+    <title>Registro de Señaléticas - Colores por condición</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
+        /* ===== RESET Y BASE ===== */
         * { margin:0; padding:0; box-sizing:border-box; }
         html, body { height:100%; font-family:'Segoe UI',Roboto,system-ui,sans-serif; background:#f0f2f5; color:#1e293b; overflow:hidden; }
         .app { display:flex; flex-direction:column; height:100vh; }
 
-        /* Top bar */
+        /* ===== TOP BAR ===== */
         .top-bar {
             background:#0b2a45; color:#fff; padding:6px 20px;
             display:flex; align-items:center; justify-content:space-between; flex-shrink:0; flex-wrap:wrap; gap:6px;
@@ -48,6 +49,7 @@
         .top-actions .btn-outline { background:transparent; border:1px solid rgba(255,255,255,0.4); }
         .top-actions .btn-outline:hover { background:rgba(255,255,255,0.1); }
 
+        /* ===== FILTER BAR (galería) ===== */
         .filter-bar {
             background:#fff; padding:6px 20px; display:flex; flex-wrap:wrap; gap:10px;
             align-items:center; border-bottom:1px solid #d1d5db; flex-shrink:0;
@@ -65,7 +67,7 @@
         }
         .filter-bar .btn-add-sign:hover { background:#1e4a6b; }
 
-        /* Galería principal */
+        /* ===== GALERÍA ===== */
         .gallery-wrapper { flex:1; overflow-y:auto; padding:12px 16px; background:#f8fafc; }
         #galeria { display:flex; flex-direction:column; gap:16px; }
         .section-group { width:100%; }
@@ -82,6 +84,7 @@
         .gallery-grid .sortable-drag { opacity:0.6; transform:scale(0.95); }
         .gallery-grid .sortable-ghost { opacity:0.3; border:2px dashed #0b2a45; }
 
+        /* ===== TARJETA DE SEÑAL ===== */
         .signal-card {
             background:#fff; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.08);
             padding:6px 6px 8px; text-align:center; cursor:grab;
@@ -125,6 +128,7 @@
         .signal-card .card-actions .del-btn { background:rgba(200,0,0,0.6); }
         .signal-card .card-actions .del-btn:hover { background:#b91c1c; }
 
+        /* ===== COLORES POR TIPO ===== */
         .signal-card.type-Reglamentación { background:#dbeafe; border-color:#93c5fd; }
         .signal-card.type-Prevención { background:#fef3c7; border-color:#fcd34d; }
         .signal-card.type-Información { background:#d1fae5; border-color:#6ee7b7; }
@@ -144,6 +148,7 @@
         .signal-card.type-Servicios.reemplazo { border-color:#f59e0b; }
         .signal-card.type-Turística.reemplazo { border-color:#f59e0b; }
 
+        /* ===== REGISTER BAR (inferior) ===== */
         .register-bar {
             background:#fff; border-top:2px solid #d1d5db; padding:8px 20px;
             display:flex; flex-wrap:wrap; align-items:flex-end; gap:8px 16px;
@@ -213,7 +218,6 @@
         }
         .modal-overlay.open { display:flex; }
 
-        /* Modal de resultados: 100% */
         .modal-box {
             background:#fff; border-radius:0; padding:10px 16px;
             display:flex; flex-direction:column; box-shadow:0 25px 60px rgba(0,0,0,0.4);
@@ -221,7 +225,6 @@
             overflow:hidden;
         }
 
-        /* Modal de edición: 80% */
         .modal-box.small {
             border-radius:12px;
             width:80vw;
@@ -254,7 +257,6 @@
             width:18px; height:18px; cursor:pointer;
         }
 
-        /* Campos con buscador en edición */
         .signal-selector-group {
             display:flex; gap:8px; align-items:center;
         }
@@ -267,7 +269,6 @@
         }
         .signal-selector-group .btn-selector:hover { background:#1e4a6b; }
 
-        /* Observaciones a lo ancho */
         .modal-box .form-group textarea {
             width:100%; padding:8px 12px; border:1px solid #d1d5db; border-radius:6px;
             font-size:0.95rem; resize:vertical; min-height:60px;
@@ -302,7 +303,25 @@
         .table-wrap td {
             padding:10px 14px; border-bottom:1px solid #e5e7eb; vertical-align:middle; font-size:0.95rem;
         }
-        .table-wrap tr:hover { background:#f1f5f9; }
+        .table-wrap tr:hover { background:rgba(255,255,255,0.3); } /* para no perder el color de fondo */
+
+        /* ===== COLORES POR CONDICIÓN (FILAS) ===== */
+        .condicion-nueva { background-color: #d4edda !important; }
+        .condicion-nueva:hover { background-color: #b7dfb9 !important; }
+        .condicion-cambiar { background-color: #f8d7da !important; }
+        .condicion-cambiar:hover { background-color: #f1c0c4 !important; }
+        .condicion-conservar { background-color: #d1ecf1 !important; }
+        .condicion-conservar:hover { background-color: #b5dfe6 !important; }
+
+        /* Badge de condición en la tabla */
+        .cond-badge {
+            display:inline-block; padding:2px 10px; border-radius:12px;
+            font-size:0.7rem; font-weight:600; color:#fff;
+        }
+        .cond-badge.nueva { background:#28a745; }
+        .cond-badge.cambiar { background:#dc3545; }
+        .cond-badge.conservar { background:#0d6efd; }
+
         .table-wrap .btn-action {
             background:transparent; border:none; cursor:pointer; font-size:1.2rem;
             padding:4px 8px; transition:0.2s;
@@ -322,7 +341,49 @@
             display:flex; align-items:center; gap:4px;
         }
 
-        /* ===== SELECTOR FLOTANTE DE SEÑALES (40% más pequeño) ===== */
+        /* ===== FILTROS EN ENCABEZADOS ===== */
+        .th-filter {
+            display:inline-flex; align-items:center; gap:6px;
+        }
+        .filter-btn {
+            background:none; border:none; color:#fff; cursor:pointer;
+            font-size:0.8rem; padding:2px 4px; border-radius:4px;
+            transition:0.2s; opacity:0.7;
+        }
+        .filter-btn:hover { opacity:1; background:rgba(255,255,255,0.2); }
+        .filter-btn.active { opacity:1; background:rgba(255,255,255,0.3); }
+        .filter-btn .badge {
+            background:#f59e0b; color:#0b2a45; font-size:0.6rem; font-weight:700;
+            padding:0 5px; border-radius:10px; margin-left:2px;
+        }
+
+        .filter-dropdown {
+            display:none; position:fixed; z-index:1100;
+            background:#fff; border-radius:8px; box-shadow:0 8px 30px rgba(0,0,0,0.3);
+            padding:12px; min-width:180px; max-height:300px; overflow-y:auto;
+            border:1px solid #d1d5db;
+        }
+        .filter-dropdown.open { display:block; }
+        .filter-dropdown .filter-option {
+            display:flex; align-items:center; gap:8px; padding:4px 0;
+            cursor:pointer; font-size:0.9rem; color:#1e293b;
+        }
+        .filter-dropdown .filter-option:hover { background:#f1f5f9; }
+        .filter-dropdown .filter-option input[type="checkbox"] {
+            width:16px; height:16px; cursor:pointer;
+        }
+        .filter-dropdown .filter-actions {
+            display:flex; gap:8px; margin-top:8px; padding-top:8px; border-top:1px solid #e5e7eb;
+        }
+        .filter-dropdown .filter-actions button {
+            background:#e5e7eb; border:none; padding:4px 12px; border-radius:4px;
+            cursor:pointer; font-size:0.8rem; transition:0.2s;
+        }
+        .filter-dropdown .filter-actions button:hover { background:#d1d5db; }
+        .filter-dropdown .filter-actions .btn-clear-filter { background:#fef3c7; }
+        .filter-dropdown .filter-actions .btn-clear-filter:hover { background:#fcd34d; }
+
+        /* ===== SELECTOR FLOTANTE ===== */
         .selector-overlay {
             display:none; position:fixed; top:0; left:0; right:0; bottom:0;
             background:rgba(0,0,0,0.7); z-index:2000;
@@ -414,6 +475,7 @@
             .signal-thumb { width:24px; height:24px; }
             .selector-gallery .gallery-grid { grid-template-columns:repeat(auto-fill,minmax(70px,1fr)); }
             .selector-gallery .signal-card .thumb { height:45px; }
+            .cond-badge { font-size:0.6rem; padding:1px 6px; }
         }
         @media (max-width:480px) {
             .gallery-grid { grid-template-columns:repeat(auto-fill,minmax(80px,1fr)); }
@@ -453,7 +515,7 @@
         </div>
     </header>
 
-    <!-- FILTER BAR -->
+    <!-- FILTER BAR (galería) -->
     <div class="filter-bar">
         <label>Tipo:</label>
         <select id="filtroTipo">
@@ -473,12 +535,12 @@
         <button class="btn-add-sign" id="btnAbrirAgregar">➕ Añadir señal</button>
     </div>
 
-    <!-- GALLERY -->
+    <!-- GALERÍA -->
     <div class="gallery-wrapper">
         <div id="galeria"></div>
     </div>
 
-    <!-- REGISTER BAR -->
+    <!-- REGISTER BAR (inferior) -->
     <div class="register-bar" id="registerBar">
         <div class="field field-seleccion">
             <span>Selección:</span>
@@ -523,20 +585,32 @@
     </div>
 </div>
 
-<!-- MODAL RESULTADOS (100%) -->
+<!-- ===== MODAL RESULTADOS ===== -->
 <div class="modal-overlay" id="modalResultados">
     <div class="modal-box">
         <div class="modal-header">
             <h2>📋 Registros del proyecto <span id="tituloProyectoResultados"></span></h2>
-            <button class="close-btn" id="closeModal">&times;</button>
+            <div style="display:flex; gap:12px; align-items:center;">
+                <span id="filtrosActivosBadge" style="font-size:0.85rem; color:#f59e0b; display:none;">🔍 Filtros activos</span>
+                <button class="btn btn-primary" id="btnLimpiarFiltrosTabla" style="padding:4px 12px; font-size:0.8rem; background:#e5e7eb; color:#1e293b;">Limpiar filtros</button>
+                <button class="close-btn" id="closeModal">&times;</button>
+            </div>
         </div>
         <div class="table-wrap">
             <table>
                 <thead><tr>
-                    <th>ÍTEM</th><th>SEÑAL</th><th>RUTA</th>
+                    <th>ÍTEM</th>
+                    <th>SEÑAL</th>
+                    <th>RUTA</th>
                     <th class="sortable" id="thProgresiva">PROGRESIVA</th>
-                    <th>LADO</th><th>TIPO</th><th>SUBTIPO</th><th>DESCRIPCIÓN</th>
-                    <th>CONDICIÓN</th><th>REEMPLAZAR POR</th><th>OBSERVACIONES</th><th>ACCIONES</th>
+                    <th>LADO</th>
+                    <th class="filter-header" data-col="tipo">TIPO <button class="filter-btn" data-col="tipo">▼</button></th>
+                    <th class="filter-header" data-col="subtipo">SUBTIPO <button class="filter-btn" data-col="subtipo">▼</button></th>
+                    <th>DESCRIPCIÓN</th>
+                    <th>CONDICIÓN</th>
+                    <th>REEMPLAZAR POR</th>
+                    <th>OBSERVACIONES</th>
+                    <th>ACCIONES</th>
                 </tr></thead>
                 <tbody id="tbodyResultados"></tbody>
             </table>
@@ -545,7 +619,7 @@
     </div>
 </div>
 
-<!-- MODAL AGREGAR/EDITAR SEÑAL (80%) -->
+<!-- ===== MODAL AGREGAR/EDITAR SEÑAL ===== -->
 <div class="modal-overlay" id="modalAgregarSenal">
     <div class="modal-box small">
         <div class="modal-header">
@@ -585,7 +659,7 @@
     </div>
 </div>
 
-<!-- MODAL EDITAR REGISTRO (80%) con casilla de reemplazo siempre visible -->
+<!-- ===== MODAL EDITAR REGISTRO ===== -->
 <div class="modal-overlay" id="modalEditarRegistro">
     <div class="modal-box small">
         <div class="modal-header">
@@ -627,7 +701,6 @@
                 </select>
             </div>
         </div>
-        <!-- Reemplazo con checkbox siempre visible -->
         <div class="form-group">
             <div class="reemplazo-check">
                 <input type="checkbox" id="editCheckReemplazo">
@@ -639,7 +712,6 @@
             </div>
             <input type="hidden" id="editReemplazo" value="">
         </div>
-        <!-- Observaciones a lo ancho -->
         <div class="form-group">
             <label>OBSERVACIONES</label>
             <textarea id="editObservaciones" rows="3" placeholder="Detalles..."></textarea>
@@ -652,7 +724,7 @@
     </div>
 </div>
 
-<!-- ===== SELECTOR FLOTANTE DE SEÑALES ===== -->
+<!-- ===== SELECTOR FLOTANTE ===== -->
 <div class="selector-overlay" id="selectorSenal">
     <div class="selector-container">
         <div class="selector-header">
@@ -676,9 +748,7 @@
             <input type="text" id="selFiltroBusqueda" placeholder="Nombre o código...">
             <span class="stats" id="selContadorSenales">0 señales</span>
         </div>
-        <div class="selector-gallery" id="selectorGaleria">
-            <!-- se renderiza con JS -->
-        </div>
+        <div class="selector-gallery" id="selectorGaleria"></div>
     </div>
 </div>
 
@@ -734,8 +804,10 @@
     let ordenProgresiva = null;
     let ordenPersonalizado = {};
     let editandoRegistroId = null;
+    let selectorModo = 'principal';
 
-    let selectorModo = 'principal'; // 'principal' o 'reemplazo'
+    let filtrosTabla = { tipo: [], subtipo: [] };
+    let filtrosActivos = false;
 
     // ============================================================
     // INICIALIZACIÓN
@@ -835,6 +907,8 @@
         document.getElementById('selectorSenal').addEventListener('click', function(e) {
             if (e.target === this) cerrarSelector();
         });
+
+        inicializarFiltrosTabla();
     }
 
     function buildInitialCatalog() {
@@ -1108,7 +1182,7 @@
     }
 
     // ============================================================
-    // RENDER GALERÍA PRINCIPAL
+    // RENDER GALERÍA PRINCIPAL (sin cambios relevantes)
     // ============================================================
     function createSignalCard(s, isSelector = false) {
         const card = document.createElement('div');
@@ -1374,9 +1448,6 @@
         document.getElementById('selContadorSenales').textContent = `${filtradas.length} señales`;
     }
 
-    // ============================================================
-    // SELECTOR FLOTANTE - ABRIR/CERRAR
-    // ============================================================
     function abrirSelector() {
         renderSelector();
         document.getElementById('selectorSenal').classList.add('open');
@@ -1634,7 +1705,7 @@
     }
 
     // ============================================================
-    // EDICIÓN DE REGISTROS (con casilla de reemplazo siempre visible)
+    // EDICIÓN DE REGISTROS
     // ============================================================
     function abrirModalEditarRegistro(id) {
         const regs = getRegistrosActivos();
@@ -1642,7 +1713,6 @@
         if (!registro) return;
         editandoRegistroId = id;
 
-        // Mostrar señal actual
         const senalActual = catalogo.find(s => s.codigo === registro.codigo);
         if (senalActual) {
             document.getElementById('editCodigo').value = senalActual.codigo;
@@ -1652,7 +1722,6 @@
             document.getElementById('editCodigoDisplay').value = '';
         }
 
-        // Mostrar reemplazo actual (si existe)
         let reemplazoActual = '';
         if (registro.reemplazo_codigo) {
             const sDest = catalogo.find(s => s.codigo === registro.reemplazo_codigo);
@@ -1666,12 +1735,10 @@
             document.getElementById('editReemplazoDisplay').value = '';
         }
 
-        // Checkbox siempre visible y sincronizado con el estado actual
         const checkbox = document.getElementById('editCheckReemplazo');
         const tieneReemplazo = reemplazoActual !== '';
         checkbox.checked = tieneReemplazo;
 
-        // Mostrar/ocultar el campo de reemplazo según el checkbox
         const reemplazoGroup = document.getElementById('reemplazoGroup');
         if (tieneReemplazo) {
             reemplazoGroup.style.display = 'flex';
@@ -1682,7 +1749,6 @@
         checkbox.onchange = function() {
             if (this.checked) {
                 reemplazoGroup.style.display = 'flex';
-                // Si no hay reemplazo seleccionado, limpiar
                 if (!document.getElementById('editReemplazo').value) {
                     document.getElementById('editReemplazoDisplay').value = '';
                 }
@@ -1766,27 +1832,223 @@
     }
 
     // ============================================================
-    // MODAL RESULTADOS (pantalla completa)
+    // FILTROS DINÁMICOS (igual que antes)
+    // ============================================================
+    function inicializarFiltrosTabla() {
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const col = this.dataset.col;
+                toggleDropdown(col, this);
+            });
+        });
+
+        document.addEventListener('click', function(e) {
+            const target = e.target;
+            const isFilterBtn = target.closest('.filter-btn');
+            const isDropdown = target.closest('.filter-dropdown');
+            if (!isFilterBtn && !isDropdown) {
+                cerrarTodosDropdowns();
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                cerrarTodosDropdowns();
+            }
+        });
+
+        document.getElementById('btnLimpiarFiltrosTabla').addEventListener('click', function() {
+            filtrosTabla.tipo = [];
+            filtrosTabla.subtipo = [];
+            actualizarEstadoFiltros();
+            renderTablaResultados();
+            actualizarBadgeFiltros();
+            cerrarTodosDropdowns();
+        });
+    }
+
+    function cerrarTodosDropdowns() {
+        document.querySelectorAll('.filter-dropdown').forEach(d => d.classList.remove('open'));
+    }
+
+    function toggleDropdown(col, btn) {
+        document.querySelectorAll('.filter-dropdown').forEach(d => {
+            if (d.dataset.col !== col) d.classList.remove('open');
+        });
+
+        let dropdown = document.querySelector(`.filter-dropdown[data-col="${col}"]`);
+        if (!dropdown) {
+            dropdown = crearDropdown(col);
+        }
+
+        const rect = btn.getBoundingClientRect();
+        let left = rect.left;
+        let top = rect.bottom + 5;
+        const dropdownWidth = 180;
+        if (left + dropdownWidth > window.innerWidth) {
+            left = window.innerWidth - dropdownWidth - 10;
+        }
+        dropdown.style.top = top + 'px';
+        dropdown.style.left = left + 'px';
+        dropdown.style.display = 'block';
+
+        if (dropdown.classList.contains('open')) {
+            dropdown.classList.remove('open');
+        } else {
+            dropdown.classList.add('open');
+        }
+    }
+
+    function crearDropdown(col) {
+        const dropdown = document.createElement('div');
+        dropdown.className = 'filter-dropdown';
+        dropdown.dataset.col = col;
+
+        const registros = getRegistrosActivos();
+        const valores = new Set();
+        registros.forEach(r => {
+            const val = r[col] || '';
+            if (val) valores.add(val);
+        });
+        const valoresArr = Array.from(valores).sort();
+
+        const opcionesHTML = valoresArr.map(val => {
+            const checked = filtrosTabla[col].includes(val) ? 'checked' : '';
+            return `
+                <label class="filter-option">
+                    <input type="checkbox" value="${val}" ${checked}>
+                    ${val}
+                </label>
+            `;
+        }).join('');
+
+        dropdown.innerHTML = `
+            <div style="margin-bottom:6px; font-weight:600; font-size:0.8rem; color:#4b5563;">
+                Filtrar por ${col === 'tipo' ? 'TIPO' : 'SUBTIPO'}
+            </div>
+            ${opcionesHTML}
+            <div class="filter-actions">
+                <button class="btn-select-all">Seleccionar todos</button>
+                <button class="btn-clear-filter">Limpiar</button>
+            </div>
+        `;
+
+        dropdown.querySelectorAll('.filter-option input[type="checkbox"]').forEach(cb => {
+            cb.addEventListener('change', function(e) {
+                e.stopPropagation();
+                const valor = this.value;
+                const colName = dropdown.dataset.col;
+                if (this.checked) {
+                    if (!filtrosTabla[colName].includes(valor)) {
+                        filtrosTabla[colName].push(valor);
+                    }
+                } else {
+                    filtrosTabla[colName] = filtrosTabla[colName].filter(v => v !== valor);
+                }
+                actualizarEstadoFiltros();
+                renderTablaResultados();
+                actualizarBadgeFiltros();
+            });
+        });
+
+        dropdown.querySelector('.btn-select-all').addEventListener('click', function(e) {
+            e.stopPropagation();
+            const colName = dropdown.dataset.col;
+            const checkboxes = dropdown.querySelectorAll('.filter-option input[type="checkbox"]');
+            const valores = Array.from(checkboxes).map(cb => cb.value);
+            filtrosTabla[colName] = valores;
+            checkboxes.forEach(cb => cb.checked = true);
+            actualizarEstadoFiltros();
+            renderTablaResultados();
+            actualizarBadgeFiltros();
+        });
+
+        dropdown.querySelector('.btn-clear-filter').addEventListener('click', function(e) {
+            e.stopPropagation();
+            const colName = dropdown.dataset.col;
+            filtrosTabla[colName] = [];
+            dropdown.querySelectorAll('.filter-option input[type="checkbox"]').forEach(cb => cb.checked = false);
+            actualizarEstadoFiltros();
+            renderTablaResultados();
+            actualizarBadgeFiltros();
+        });
+
+        document.body.appendChild(dropdown);
+        return dropdown;
+    }
+
+    function actualizarEstadoFiltros() {
+        filtrosActivos = (filtrosTabla.tipo.length > 0 || filtrosTabla.subtipo.length > 0);
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            const col = btn.dataset.col;
+            if (filtrosTabla[col] && filtrosTabla[col].length > 0) {
+                btn.classList.add('active');
+                let badge = btn.querySelector('.badge');
+                if (!badge) {
+                    badge = document.createElement('span');
+                    badge.className = 'badge';
+                    btn.appendChild(badge);
+                }
+                badge.textContent = filtrosTabla[col].length;
+            } else {
+                btn.classList.remove('active');
+                const badge = btn.querySelector('.badge');
+                if (badge) badge.remove();
+            }
+        });
+    }
+
+    function actualizarBadgeFiltros() {
+        const badge = document.getElementById('filtrosActivosBadge');
+        if (filtrosActivos) {
+            badge.style.display = 'inline';
+            let texto = '🔍 Filtros activos';
+            if (filtrosTabla.tipo.length > 0) texto += ` (Tipo: ${filtrosTabla.tipo.length})`;
+            if (filtrosTabla.subtipo.length > 0) texto += ` (Subtipo: ${filtrosTabla.subtipo.length})`;
+            badge.textContent = texto;
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+
+    // ============================================================
+    // MODAL RESULTADOS (con colores por condición)
     // ============================================================
     function mostrarResultados() {
         document.getElementById('modalResultados').classList.add('open');
         renderTablaResultados();
+        actualizarBadgeFiltros();
+        actualizarEstadoFiltros();
     }
 
     function renderTablaResultados() {
         const tbody = document.getElementById('tbodyResultados');
         const sinReg = document.getElementById('sinRegistros');
         tbody.innerHTML = '';
-        const regs = getRegistrosActivos();
+        let regs = getRegistrosActivos();
+
         if (regs.length === 0) {
             sinReg.style.display = 'block';
             return;
         }
         sinReg.style.display = 'none';
 
-        let datos = [...regs];
+        if (filtrosActivos) {
+            regs = regs.filter(r => {
+                let ok = true;
+                if (filtrosTabla.tipo.length > 0) {
+                    ok = ok && filtrosTabla.tipo.includes(r.tipo || '');
+                }
+                if (filtrosTabla.subtipo.length > 0) {
+                    ok = ok && filtrosTabla.subtipo.includes(r.subtipo || '');
+                }
+                return ok;
+            });
+        }
+
         if (ordenProgresiva) {
-            datos.sort((a, b) => {
+            regs.sort((a, b) => {
                 const va = a.progresiva || '';
                 const vb = b.progresiva || '';
                 if (ordenProgresiva === 'asc') return va.localeCompare(vb, undefined, { numeric: true });
@@ -1794,8 +2056,32 @@
             });
         }
 
-        datos.forEach((r, idx) => {
+        if (regs.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding:20px; color:#6b7280;">No hay registros que coincidan con los filtros.</td></tr>`;
+            return;
+        }
+
+        regs.forEach((r, idx) => {
             const tr = document.createElement('tr');
+
+            // Asignar clase según condición
+            let condClass = '';
+            let badgeText = r.condicion || '';
+            let badgeClass = '';
+            if (r.condicion === 'Señaletica Nueva') {
+                condClass = 'condicion-nueva';
+                badgeClass = 'nueva';
+            } else if (r.condicion === 'Señaletica Existente a Cambiar') {
+                condClass = 'condicion-cambiar';
+                badgeClass = 'cambiar';
+            } else if (r.condicion === 'Señaletica a Conservar') {
+                condClass = 'condicion-conservar';
+                badgeClass = 'conservar';
+            }
+            if (condClass) {
+                tr.className = condClass;
+            }
+
             let reemplazoTexto = '-';
             if (r.reemplazo_codigo) {
                 const sDest = catalogo.find(s => s.codigo === r.reemplazo_codigo);
@@ -1818,7 +2104,7 @@
                 <td>${r.tipo || ''}</td>
                 <td>${r.subtipo || ''}</td>
                 <td>${r.descripcion || ''}</td>
-                <td>${r.condicion || ''}</td>
+                <td><span class="cond-badge ${badgeClass}">${badgeText}</span></td>
                 <td>${reemplazoTexto}</td>
                 <td>${r.observaciones || ''}</td>
                 <td>
@@ -1856,6 +2142,8 @@
 
     function cerrarModalResultados() {
         document.getElementById('modalResultados').classList.remove('open');
+        cerrarTodosDropdowns();
+        document.querySelectorAll('.filter-dropdown').forEach(d => d.remove());
     }
 
     // ============================================================
@@ -1896,7 +2184,7 @@
     }
 
     // ============================================================
-    // IMPORTAR ARCHIVO
+    // IMPORTAR ARCHIVO (sin cambios relevantes)
     // ============================================================
     function importarArchivo(file) {
         const reader = new FileReader();
@@ -2072,9 +2360,6 @@
         actualizarStatus(`✅ Importadas ${nuevos.length} señales al catálogo.`, false);
     }
 
-    // ============================================================
-    // RESET CATÁLOGO
-    // ============================================================
     function resetCatalogo() {
         if (!confirm('Restaurar el catálogo inicial (solo las 25 señales) ?')) return;
         catalogo = buildInitialCatalog();
