@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro de Señaléticas - Orden por Progresiva</title>
+    <title>Registro de Señaléticas - Sincronización</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -418,7 +418,7 @@
             transform:scale(1.03);
         }
 
-        /* ===== MODAL DE CONDICIONES (con colores) ===== */
+        /* ===== MODAL DE CONDICIONES ===== */
         .cond-list {
             max-height:200px; overflow-y:auto; margin-bottom:12px;
         }
@@ -743,7 +743,7 @@
     </div>
 </div>
 
-<!-- ===== MODAL GESTIÓN DE CONDICIONES (con colores) ===== -->
+<!-- ===== MODAL GESTIÓN DE CONDICIONES ===== -->
 <div class="modal-overlay" id="modalCondiciones">
     <div class="modal-box small">
         <div class="modal-header">
@@ -809,12 +809,12 @@
     let nextId = 1;
     let selectedCodigo = null;
     let reemplazoSeleccionado = null;
-    let ordenProgresiva = null; // 'asc', 'desc', o null (sin orden)
+    let ordenProgresiva = null; // 'asc', 'desc', o null
     let ordenPersonalizado = {};
     let editandoRegistroId = null;
     let selectorModo = 'principal';
 
-    // Condiciones (array de objetos {nombre, color})
+    // Condiciones
     let condiciones = [];
     const CONDICION_DEFAULT = 'Sin condición';
     const COLOR_DEFAULT = '#e5e7eb';
@@ -865,7 +865,7 @@
             try { ordenPersonalizado = JSON.parse(storedOrden); } catch(e) { ordenPersonalizado = {}; }
         }
 
-        // Cargar condiciones (con colores)
+        // Cargar condiciones
         cargarCondiciones();
 
         // Calcular nextId
@@ -928,7 +928,7 @@
             if (e.target === this) cerrarSelector();
         });
 
-        // Gestión de condiciones (botón en la barra de registro)
+        // Gestión de condiciones
         document.getElementById('btnGestionarCondiciones').addEventListener('click', function(e) {
             e.preventDefault();
             abrirModalCondiciones();
@@ -942,10 +942,9 @@
             if (e.key === 'Enter') agregarCondicion();
         });
 
-        // Llenar selects de condición
         llenarSelectsCondicion();
 
-        // Evento click en encabezado PROGRESIVA para ordenar
+        // Orden por progresiva
         document.getElementById('thProgresiva').addEventListener('click', toggleOrdenProgresiva);
     }
 
@@ -1216,7 +1215,6 @@
         }
         proyectoActivo = nuevo;
         localStorage.setItem('proyectoActivo', proyectoActivo);
-        // Reiniciar orden al cambiar de proyecto
         ordenProgresiva = null;
         actualizarSelectorProyectos();
         selectedCodigo = null;
@@ -1225,7 +1223,6 @@
         actualizarSeleccion();
         actualizarInfoReemplazo();
         renderGaleria();
-        // Si el modal de resultados está abierto, refrescar
         if (document.getElementById('modalResultados').classList.contains('open')) {
             renderTablaResultados();
         }
@@ -1729,7 +1726,7 @@
     }
 
     // ============================================================
-    // GESTIÓN DE CATÁLOGO
+    // GESTIÓN DE CATÁLOGO (con actualización de registros)
     // ============================================================
     function eliminarSenal(codigo) {
         const senal = catalogo.find(s => s.codigo === codigo);
@@ -1742,6 +1739,7 @@
             ordenPersonalizado[tipo] = ordenPersonalizado[tipo].filter(c => c !== codigo);
             guardarOrdenPersonalizado();
         }
+        // Nota: Los registros que usen esta señal se quedan con los datos antiguos, no se eliminan.
         if (selectedCodigo === codigo) {
             selectedCodigo = null;
             actualizarSeleccion();
@@ -1775,6 +1773,7 @@
     }
 
     function editarSenal(codigoViejo, nombre, codigo, tipo, subtipo) {
+        // Verificar duplicado de código (si cambia)
         if (codigoViejo !== codigo && catalogo.some(s => s.codigo === codigo)) {
             actualizarStatus('⚠️ Ya existe una señal con ese nuevo código', true);
             return false;
@@ -1783,6 +1782,29 @@
         if (index === -1) return false;
         const viejoTipo = catalogo[index].tipo;
         catalogo[index] = { nombre, codigo, tipo, subtipo: subtipo || '' };
+
+        // --- ACTUALIZAR REGISTROS ---
+        // Recorremos todos los proyectos y actualizamos los registros que usen esta señal
+        const codigosProyectos = Object.keys(proyectos);
+        codigosProyectos.forEach(proy => {
+            proyectos[proy].forEach(reg => {
+                // Si el registro usa la señal editada
+                if (reg.codigo === codigoViejo) {
+                    reg.codigo = codigo;
+                    reg.tipo = tipo;
+                    reg.subtipo = subtipo || '';
+                    reg.descripcion = nombre;
+                }
+                // Si el registro tiene como reemplazo la señal editada
+                if (reg.reemplazo_codigo === codigoViejo) {
+                    reg.reemplazo_codigo = codigo;
+                }
+            });
+        });
+        // Guardar cambios en proyectos
+        guardarProyectos();
+
+        // --- Actualizar orden personalizado si cambia el tipo ---
         if (viejoTipo !== tipo) {
             if (ordenPersonalizado[viejoTipo]) {
                 ordenPersonalizado[viejoTipo] = ordenPersonalizado[viejoTipo].filter(c => c !== codigoViejo);
@@ -1790,11 +1812,13 @@
             if (!ordenPersonalizado[tipo]) ordenPersonalizado[tipo] = [];
             ordenPersonalizado[tipo].push(codigo);
         } else if (codigoViejo !== codigo) {
+            // Mismo tipo pero cambia código
             if (ordenPersonalizado[tipo]) {
                 const idx = ordenPersonalizado[tipo].indexOf(codigoViejo);
                 if (idx !== -1) ordenPersonalizado[tipo][idx] = codigo;
             }
         }
+        // Si cambia el código, actualizar imágenes y selección
         if (codigoViejo !== codigo) {
             if (imagenes[codigoViejo]) {
                 imagenes[codigo] = imagenes[codigoViejo];
@@ -1810,12 +1834,18 @@
                 actualizarInfoReemplazo();
             }
         }
+
+        // Guardar catálogo y orden
         localStorage.setItem('catalogo', JSON.stringify(catalogo));
         guardarOrdenPersonalizado();
         llenarSubtipos();
         llenarSubtiposSelector();
         renderGaleria();
-        actualizarStatus(`✅ Señal ${codigo} actualizada`, false);
+        // Refrescar tabla si está abierta
+        if (document.getElementById('modalResultados').classList.contains('open')) {
+            renderTablaResultados();
+        }
+        actualizarStatus(`✅ Señal ${codigo} actualizada y registros sincronizados`, false);
         return true;
     }
 
@@ -2111,7 +2141,6 @@
     // ORDENAMIENTO POR PROGRESIVA (tres estados)
     // ============================================================
     function toggleOrdenProgresiva() {
-        // Ciclo: null → 'asc' → 'desc' → null → ...
         if (ordenProgresiva === null) {
             ordenProgresiva = 'asc';
         } else if (ordenProgresiva === 'asc') {
@@ -2120,13 +2149,11 @@
             ordenProgresiva = null;
         }
         renderTablaResultados();
-        // Actualizar el encabezado visualmente
         const th = document.getElementById('thProgresiva');
         th.className = 'sortable';
         if (ordenProgresiva) {
             th.classList.add(ordenProgresiva);
         }
-        // Mostrar mensaje de estado
         let estado = 'Sin orden (inserción)';
         if (ordenProgresiva === 'asc') estado = 'Ascendente (menor a mayor)';
         else if (ordenProgresiva === 'desc') estado = 'Descendente (mayor a menor)';
@@ -2134,7 +2161,7 @@
     }
 
     // ============================================================
-    // MODAL RESULTADOS (con orden por progresiva)
+    // MODAL RESULTADOS
     // ============================================================
     function mostrarResultados() {
         document.getElementById('modalResultados').classList.add('open');
@@ -2153,14 +2180,13 @@
         }
         sinReg.style.display = 'none';
 
-        // Aplicar orden si existe
         if (ordenProgresiva) {
             regs.sort((a, b) => {
                 const va = a.progresiva || '';
                 const vb = b.progresiva || '';
                 if (ordenProgresiva === 'asc') {
                     return va.localeCompare(vb, undefined, { numeric: true });
-                } else { // desc
+                } else {
                     return vb.localeCompare(va, undefined, { numeric: true });
                 }
             });
@@ -2168,20 +2194,16 @@
 
         regs.forEach((r, idx) => {
             const tr = document.createElement('tr');
-
             const color = getColorPorNombre(r.condicion);
             if (color) {
                 tr.style.backgroundColor = color;
             }
-
             let badgeText = r.condicion || CONDICION_DEFAULT;
-
             let reemplazoTexto = '-';
             if (r.reemplazo_codigo) {
                 const sDest = catalogo.find(s => s.codigo === r.reemplazo_codigo);
                 if (sDest) reemplazoTexto = `${sDest.codigo} - ${sDest.nombre}`;
             }
-
             let imgSrc = imagenes[r.codigo] || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"%3E%3Crect width="32" height="32" fill="%23e5e7eb"/%3E%3Ctext x="16" y="22" font-size="16" text-anchor="middle" fill="%236b7280"%3E🚦%3C/text%3E%3C/svg%3E';
 
             tr.innerHTML = `
@@ -2222,7 +2244,6 @@
             });
         });
 
-        // Actualizar encabezado
         const th = document.getElementById('thProgresiva');
         th.className = 'sortable';
         if (ordenProgresiva) {
@@ -2272,7 +2293,7 @@
     }
 
     // ============================================================
-    // IMPORTAR ARCHIVO
+    // IMPORTAR ARCHIVO (sin cambios relevantes)
     // ============================================================
     function importarArchivo(file) {
         const reader = new FileReader();
@@ -2500,8 +2521,6 @@
                 e.target.value = '';
             }
         });
-
-        // El evento de ordenamiento ya está asignado en init() al thProgresiva
 
         document.getElementById('btnAbrirAgregar').addEventListener('click', abrirModalAgregar);
         document.getElementById('closeModalSenal').addEventListener('click', cerrarModalSenal);
