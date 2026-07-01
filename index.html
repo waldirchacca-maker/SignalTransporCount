@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro de Señaléticas - Colores por condición</title>
+    <title>Registro de Señaléticas - Orden por Progresiva</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -127,8 +127,9 @@
         .signal-card .card-actions button:hover { background:#0b2a45; transform:scale(1.1); }
         .signal-card .card-actions .del-btn { background:rgba(200,0,0,0.6); }
         .signal-card .card-actions .del-btn:hover { background:#b91c1c; }
+        .signal-card .card-actions .edit-btn { background:rgba(11,42,69,0.6); }
+        .signal-card .card-actions .edit-btn:hover { background:#0b2a45; }
 
-        /* ===== COLORES POR TIPO ===== */
         .signal-card.type-Reglamentación { background:#dbeafe; border-color:#93c5fd; }
         .signal-card.type-Prevención { background:#fef3c7; border-color:#fcd34d; }
         .signal-card.type-Información { background:#d1fae5; border-color:#6ee7b7; }
@@ -169,7 +170,18 @@
         .register-bar .field textarea { resize:vertical; min-height:32px; max-height:50px; }
         .register-bar .field-progresiva { flex:1; }
         .register-bar .field-lado { flex:0.7; }
-        .register-bar .field-condicion { flex:0.9; }
+        .register-bar .field-condicion { flex:0.9; position:relative; }
+        .register-bar .field-condicion .cond-wrapper {
+            display:flex; gap:4px; align-items:flex-end;
+        }
+        .register-bar .field-condicion .cond-wrapper select { flex:1; }
+        .register-bar .field-condicion .cond-wrapper .btn-cond {
+            background:#e5e7eb; border:1px solid #d1d5db; border-radius:4px;
+            padding:4px 8px; cursor:pointer; font-size:0.8rem;
+            height:32px; display:flex; align-items:center; justify-content:center;
+            transition:0.2s; color:#1e293b;
+        }
+        .register-bar .field-condicion .cond-wrapper .btn-cond:hover { background:#d1d5db; }
         .register-bar .field-obs { flex:1.5; }
         .register-bar .field-reemplazo {
             flex:0.9; display:flex; flex-direction:column; gap:2px;
@@ -297,30 +309,18 @@
             position:sticky; top:0; z-index:2; white-space:nowrap; font-size:0.95rem;
         }
         .table-wrap th.sortable { cursor:pointer; user-select:none; }
-        .table-wrap th.sortable::after { content:' ↕'; font-size:0.8rem; opacity:0.6; }
+        .table-wrap th.sortable::after { content:' ↕'; font-size:0.8rem; opacity:0.4; }
         .table-wrap th.sortable.asc::after { content:' ↑'; opacity:1; }
         .table-wrap th.sortable.desc::after { content:' ↓'; opacity:1; }
         .table-wrap td {
             padding:10px 14px; border-bottom:1px solid #e5e7eb; vertical-align:middle; font-size:0.95rem;
         }
-        .table-wrap tr:hover { background:rgba(255,255,255,0.3); } /* para no perder el color de fondo */
+        .table-wrap tr:hover { background:rgba(255,255,255,0.4); }
 
-        /* ===== COLORES POR CONDICIÓN (FILAS) ===== */
-        .condicion-nueva { background-color: #d4edda !important; }
-        .condicion-nueva:hover { background-color: #b7dfb9 !important; }
-        .condicion-cambiar { background-color: #f8d7da !important; }
-        .condicion-cambiar:hover { background-color: #f1c0c4 !important; }
-        .condicion-conservar { background-color: #d1ecf1 !important; }
-        .condicion-conservar:hover { background-color: #b5dfe6 !important; }
-
-        /* Badge de condición en la tabla */
         .cond-badge {
             display:inline-block; padding:2px 10px; border-radius:12px;
-            font-size:0.7rem; font-weight:600; color:#fff;
+            font-size:0.7rem; font-weight:600; color:#1e293b;
         }
-        .cond-badge.nueva { background:#28a745; }
-        .cond-badge.cambiar { background:#dc3545; }
-        .cond-badge.conservar { background:#0d6efd; }
 
         .table-wrap .btn-action {
             background:transparent; border:none; cursor:pointer; font-size:1.2rem;
@@ -340,48 +340,6 @@
         .signal-code-cell {
             display:flex; align-items:center; gap:4px;
         }
-
-        /* ===== FILTROS EN ENCABEZADOS ===== */
-        .th-filter {
-            display:inline-flex; align-items:center; gap:6px;
-        }
-        .filter-btn {
-            background:none; border:none; color:#fff; cursor:pointer;
-            font-size:0.8rem; padding:2px 4px; border-radius:4px;
-            transition:0.2s; opacity:0.7;
-        }
-        .filter-btn:hover { opacity:1; background:rgba(255,255,255,0.2); }
-        .filter-btn.active { opacity:1; background:rgba(255,255,255,0.3); }
-        .filter-btn .badge {
-            background:#f59e0b; color:#0b2a45; font-size:0.6rem; font-weight:700;
-            padding:0 5px; border-radius:10px; margin-left:2px;
-        }
-
-        .filter-dropdown {
-            display:none; position:fixed; z-index:1100;
-            background:#fff; border-radius:8px; box-shadow:0 8px 30px rgba(0,0,0,0.3);
-            padding:12px; min-width:180px; max-height:300px; overflow-y:auto;
-            border:1px solid #d1d5db;
-        }
-        .filter-dropdown.open { display:block; }
-        .filter-dropdown .filter-option {
-            display:flex; align-items:center; gap:8px; padding:4px 0;
-            cursor:pointer; font-size:0.9rem; color:#1e293b;
-        }
-        .filter-dropdown .filter-option:hover { background:#f1f5f9; }
-        .filter-dropdown .filter-option input[type="checkbox"] {
-            width:16px; height:16px; cursor:pointer;
-        }
-        .filter-dropdown .filter-actions {
-            display:flex; gap:8px; margin-top:8px; padding-top:8px; border-top:1px solid #e5e7eb;
-        }
-        .filter-dropdown .filter-actions button {
-            background:#e5e7eb; border:none; padding:4px 12px; border-radius:4px;
-            cursor:pointer; font-size:0.8rem; transition:0.2s;
-        }
-        .filter-dropdown .filter-actions button:hover { background:#d1d5db; }
-        .filter-dropdown .filter-actions .btn-clear-filter { background:#fef3c7; }
-        .filter-dropdown .filter-actions .btn-clear-filter:hover { background:#fcd34d; }
 
         /* ===== SELECTOR FLOTANTE ===== */
         .selector-overlay {
@@ -460,6 +418,47 @@
             transform:scale(1.03);
         }
 
+        /* ===== MODAL DE CONDICIONES (con colores) ===== */
+        .cond-list {
+            max-height:200px; overflow-y:auto; margin-bottom:12px;
+        }
+        .cond-item {
+            display:flex; justify-content:space-between; align-items:center;
+            padding:6px 10px; border-bottom:1px solid #e5e7eb;
+            gap:8px;
+        }
+        .cond-item .cond-info {
+            display:flex; align-items:center; gap:8px; flex:1;
+        }
+        .cond-item .cond-name {
+            font-size:0.95rem;
+        }
+        .cond-item .color-picker {
+            width:36px; height:32px; border:none; padding:2px; border-radius:4px;
+            cursor:pointer; background:transparent;
+        }
+        .cond-item .cond-actions {
+            display:flex; gap:4px;
+        }
+        .cond-item .cond-actions button {
+            background:none; border:none; cursor:pointer; font-size:1rem;
+            padding:0 4px; transition:0.2s;
+        }
+        .cond-item .cond-actions .edit-cond:hover { color:#0b2a45; }
+        .cond-item .cond-actions .del-cond:hover { color:#dc2626; }
+
+        .cond-add {
+            display:flex; gap:8px; margin-top:8px;
+        }
+        .cond-add input {
+            flex:1; padding:6px 10px; border:1px solid #d1d5db; border-radius:4px;
+        }
+        .cond-add button {
+            background:#0b2a45; color:#fff; border:none; padding:6px 16px;
+            border-radius:4px; cursor:pointer;
+        }
+        .cond-add button:hover { background:#1e4a6b; }
+
         @media (max-width:768px) {
             .top-bar h1 { font-size:1rem; }
             .filter-bar { padding:6px 12px; gap:6px; }
@@ -476,6 +475,7 @@
             .selector-gallery .gallery-grid { grid-template-columns:repeat(auto-fill,minmax(70px,1fr)); }
             .selector-gallery .signal-card .thumb { height:45px; }
             .cond-badge { font-size:0.6rem; padding:1px 6px; }
+            .cond-item .color-picker { width:30px; height:28px; }
         }
         @media (max-width:480px) {
             .gallery-grid { grid-template-columns:repeat(auto-fill,minmax(80px,1fr)); }
@@ -560,11 +560,10 @@
         </div>
         <div class="field field-condicion">
             <label>CONDICIÓN</label>
-            <select id="inputCondicion">
-                <option value="Señaletica Existente a Cambiar">Señaletica Existente a Cambiar</option>
-                <option value="Señaletica a Conservar">Señaletica a Conservar</option>
-                <option value="Señaletica Nueva">Señaletica Nueva</option>
-            </select>
+            <div class="cond-wrapper">
+                <select id="inputCondicion"></select>
+                <button class="btn-cond" id="btnGestionarCondiciones" title="Gestionar condiciones">⚙️</button>
+            </div>
         </div>
         <div class="field field-obs">
             <label>OBSERVACIONES</label>
@@ -590,11 +589,7 @@
     <div class="modal-box">
         <div class="modal-header">
             <h2>📋 Registros del proyecto <span id="tituloProyectoResultados"></span></h2>
-            <div style="display:flex; gap:12px; align-items:center;">
-                <span id="filtrosActivosBadge" style="font-size:0.85rem; color:#f59e0b; display:none;">🔍 Filtros activos</span>
-                <button class="btn btn-primary" id="btnLimpiarFiltrosTabla" style="padding:4px 12px; font-size:0.8rem; background:#e5e7eb; color:#1e293b;">Limpiar filtros</button>
-                <button class="close-btn" id="closeModal">&times;</button>
-            </div>
+            <button class="close-btn" id="closeModal">&times;</button>
         </div>
         <div class="table-wrap">
             <table>
@@ -604,8 +599,8 @@
                     <th>RUTA</th>
                     <th class="sortable" id="thProgresiva">PROGRESIVA</th>
                     <th>LADO</th>
-                    <th class="filter-header" data-col="tipo">TIPO <button class="filter-btn" data-col="tipo">▼</button></th>
-                    <th class="filter-header" data-col="subtipo">SUBTIPO <button class="filter-btn" data-col="subtipo">▼</button></th>
+                    <th>TIPO</th>
+                    <th>SUBTIPO</th>
                     <th>DESCRIPCIÓN</th>
                     <th>CONDICIÓN</th>
                     <th>REEMPLAZAR POR</th>
@@ -694,11 +689,7 @@
             </div>
             <div class="form-group">
                 <label>CONDICIÓN</label>
-                <select id="editCondicion">
-                    <option value="Señaletica Existente a Cambiar">Señaletica Existente a Cambiar</option>
-                    <option value="Señaletica a Conservar">Señaletica a Conservar</option>
-                    <option value="Señaletica Nueva">Señaletica Nueva</option>
-                </select>
+                <select id="editCondicion"></select>
             </div>
         </div>
         <div class="form-group">
@@ -752,6 +743,23 @@
     </div>
 </div>
 
+<!-- ===== MODAL GESTIÓN DE CONDICIONES (con colores) ===== -->
+<div class="modal-overlay" id="modalCondiciones">
+    <div class="modal-box small">
+        <div class="modal-header">
+            <h2>🎨 Gestionar Condiciones y Colores</h2>
+            <button class="close-btn" id="closeModalCondiciones">&times;</button>
+        </div>
+        <p style="margin-bottom:8px; font-size:0.9rem; color:#4b5563;">Cada condición puede tener su propio color de fondo en la tabla de registros.</p>
+        <div class="cond-list" id="condList"></div>
+        <div class="cond-add">
+            <input type="text" id="nuevaCondicion" placeholder="Nueva condición...">
+            <button id="btnAgregarCondicion">➕ Agregar</button>
+        </div>
+        <div id="mensajeCondiciones" style="margin-top:8px; font-size:0.85rem; color:#16a34a;"></div>
+    </div>
+</div>
+
 <script>
     // ============================================================
     // CATÁLOGO INICIAL REDUCIDO
@@ -801,18 +809,21 @@
     let nextId = 1;
     let selectedCodigo = null;
     let reemplazoSeleccionado = null;
-    let ordenProgresiva = null;
+    let ordenProgresiva = null; // 'asc', 'desc', o null (sin orden)
     let ordenPersonalizado = {};
     let editandoRegistroId = null;
     let selectorModo = 'principal';
 
-    let filtrosTabla = { tipo: [], subtipo: [] };
-    let filtrosActivos = false;
+    // Condiciones (array de objetos {nombre, color})
+    let condiciones = [];
+    const CONDICION_DEFAULT = 'Sin condición';
+    const COLOR_DEFAULT = '#e5e7eb';
 
     // ============================================================
     // INICIALIZACIÓN
     // ============================================================
     function init() {
+        // Cargar catálogo
         const storedCatalogo = localStorage.getItem('catalogo');
         if (storedCatalogo) {
             try { catalogo = JSON.parse(storedCatalogo); } catch(e) { catalogo = buildInitialCatalog(); }
@@ -820,11 +831,13 @@
             catalogo = buildInitialCatalog();
         }
 
+        // Cargar imágenes
         const storedImagenes = localStorage.getItem('imagenes');
         if (storedImagenes) {
             try { imagenes = JSON.parse(storedImagenes); } catch(e) { imagenes = {}; }
         }
 
+        // Cargar proyectos
         const storedProyectos = localStorage.getItem('proyectos');
         if (storedProyectos) {
             try {
@@ -852,6 +865,10 @@
             try { ordenPersonalizado = JSON.parse(storedOrden); } catch(e) { ordenPersonalizado = {}; }
         }
 
+        // Cargar condiciones (con colores)
+        cargarCondiciones();
+
+        // Calcular nextId
         let maxId = 0;
         Object.values(proyectos).forEach(regs => {
             regs.forEach(r => { if (r.id > maxId) maxId = r.id; });
@@ -875,10 +892,12 @@
         llenarSubtiposSelector();
         renderSelector();
 
+        // Eventos de selector flotante
         document.getElementById('selFiltroTipo').addEventListener('change', renderSelector);
         document.getElementById('selFiltroSubtipo').addEventListener('change', renderSelector);
         document.getElementById('selFiltroBusqueda').addEventListener('input', renderSelector);
 
+        // Evento checkbox reemplazo
         document.getElementById('checkReemplazo').addEventListener('change', function() {
             if (!this.checked) {
                 reemplazoSeleccionado = null;
@@ -895,6 +914,7 @@
             renderGaleria();
         });
 
+        // Eventos selector flotante
         document.getElementById('btnAbrirSelector').addEventListener('click', function() {
             selectorModo = 'principal';
             abrirSelector();
@@ -908,7 +928,25 @@
             if (e.target === this) cerrarSelector();
         });
 
-        inicializarFiltrosTabla();
+        // Gestión de condiciones (botón en la barra de registro)
+        document.getElementById('btnGestionarCondiciones').addEventListener('click', function(e) {
+            e.preventDefault();
+            abrirModalCondiciones();
+        });
+        document.getElementById('closeModalCondiciones').addEventListener('click', cerrarModalCondiciones);
+        document.getElementById('modalCondiciones').addEventListener('click', function(e) {
+            if (e.target === this) cerrarModalCondiciones();
+        });
+        document.getElementById('btnAgregarCondicion').addEventListener('click', agregarCondicion);
+        document.getElementById('nuevaCondicion').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') agregarCondicion();
+        });
+
+        // Llenar selects de condición
+        llenarSelectsCondicion();
+
+        // Evento click en encabezado PROGRESIVA para ordenar
+        document.getElementById('thProgresiva').addEventListener('click', toggleOrdenProgresiva);
     }
 
     function buildInitialCatalog() {
@@ -932,6 +970,224 @@
             }
         }
         return result;
+    }
+
+    // ============================================================
+    // CONDICIONES (con colores)
+    // ============================================================
+    function cargarCondiciones() {
+        const stored = localStorage.getItem('condiciones');
+        if (stored) {
+            try {
+                const parsed = JSON.parse(stored);
+                condiciones = parsed.map(c => {
+                    if (typeof c === 'string') {
+                        return { nombre: c, color: obtenerColorPorDefecto(c) };
+                    }
+                    return { nombre: c.nombre || c, color: c.color || COLOR_DEFAULT };
+                });
+                if (!condiciones.some(c => c.nombre === CONDICION_DEFAULT)) {
+                    condiciones.unshift({ nombre: CONDICION_DEFAULT, color: COLOR_DEFAULT });
+                }
+                const seen = new Set();
+                condiciones = condiciones.filter(c => {
+                    const key = c.nombre;
+                    if (seen.has(key)) return false;
+                    seen.add(key);
+                    return true;
+                });
+            } catch(e) {
+                condiciones = crearCondicionesIniciales();
+            }
+        } else {
+            condiciones = crearCondicionesIniciales();
+        }
+        guardarCondiciones();
+    }
+
+    function crearCondicionesIniciales() {
+        return [
+            { nombre: CONDICION_DEFAULT, color: '#e5e7eb' },
+            { nombre: 'Señaletica Existente a Cambiar', color: '#f8d7da' },
+            { nombre: 'Señaletica a Conservar', color: '#d1ecf1' },
+            { nombre: 'Señaletica Nueva', color: '#d4edda' }
+        ];
+    }
+
+    function obtenerColorPorDefecto(nombre) {
+        const mapa = {
+            'Sin condición': '#e5e7eb',
+            'Señaletica Existente a Cambiar': '#f8d7da',
+            'Señaletica a Conservar': '#d1ecf1',
+            'Señaletica Nueva': '#d4edda'
+        };
+        return mapa[nombre] || '#e5e7eb';
+    }
+
+    function guardarCondiciones() {
+        localStorage.setItem('condiciones', JSON.stringify(condiciones));
+    }
+
+    function llenarSelectsCondicion() {
+        const selects = ['inputCondicion', 'editCondicion'];
+        selects.forEach(id => {
+            const sel = document.getElementById(id);
+            if (!sel) return;
+            const current = sel.value;
+            sel.innerHTML = '';
+            condiciones.forEach(cond => {
+                const opt = document.createElement('option');
+                opt.value = cond.nombre;
+                opt.textContent = cond.nombre;
+                sel.appendChild(opt);
+            });
+            if (condiciones.some(c => c.nombre === current)) {
+                sel.value = current;
+            } else {
+                sel.value = CONDICION_DEFAULT;
+            }
+        });
+    }
+
+    function getColorPorNombre(nombre) {
+        const cond = condiciones.find(c => c.nombre === nombre);
+        return cond ? cond.color : COLOR_DEFAULT;
+    }
+
+    function abrirModalCondiciones() {
+        renderListaCondiciones();
+        document.getElementById('modalCondiciones').classList.add('open');
+        document.getElementById('nuevaCondicion').value = '';
+        document.getElementById('mensajeCondiciones').textContent = '';
+    }
+
+    function cerrarModalCondiciones() {
+        document.getElementById('modalCondiciones').classList.remove('open');
+    }
+
+    function renderListaCondiciones() {
+        const container = document.getElementById('condList');
+        container.innerHTML = '';
+        condiciones.forEach((cond, idx) => {
+            const item = document.createElement('div');
+            item.className = 'cond-item';
+            const isDefault = cond.nombre === CONDICION_DEFAULT;
+            item.innerHTML = `
+                <div class="cond-info">
+                    <span class="cond-name">${cond.nombre} ${isDefault ? '(por defecto)' : ''}</span>
+                    <input type="color" class="color-picker" value="${cond.color}" data-idx="${idx}" ${isDefault ? 'disabled' : ''}>
+                </div>
+                <div class="cond-actions">
+                    ${!isDefault ? `<button class="edit-cond" data-idx="${idx}" title="Renombrar">✏️</button>` : ''}
+                    ${!isDefault ? `<button class="del-cond" data-idx="${idx}" title="Eliminar">🗑️</button>` : ''}
+                </div>
+            `;
+            container.appendChild(item);
+        });
+
+        container.querySelectorAll('.color-picker').forEach(input => {
+            input.addEventListener('input', function() {
+                const idx = parseInt(this.dataset.idx);
+                condiciones[idx].color = this.value;
+                guardarCondiciones();
+                if (document.getElementById('modalResultados').classList.contains('open')) {
+                    renderTablaResultados();
+                }
+                document.getElementById('mensajeCondiciones').textContent = '✅ Color actualizado.';
+                document.getElementById('mensajeCondiciones').style.color = '#16a34a';
+            });
+        });
+
+        container.querySelectorAll('.edit-cond').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const idx = parseInt(this.dataset.idx);
+                editarCondicion(idx);
+            });
+        });
+        container.querySelectorAll('.del-cond').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const idx = parseInt(this.dataset.idx);
+                eliminarCondicion(idx);
+            });
+        });
+    }
+
+    function agregarCondicion() {
+        const input = document.getElementById('nuevaCondicion');
+        const valor = input.value.trim();
+        if (!valor) {
+            document.getElementById('mensajeCondiciones').textContent = '⚠️ Ingresa un nombre para la condición.';
+            document.getElementById('mensajeCondiciones').style.color = '#dc2626';
+            return;
+        }
+        if (condiciones.some(c => c.nombre === valor)) {
+            document.getElementById('mensajeCondiciones').textContent = '⚠️ Esta condición ya existe.';
+            document.getElementById('mensajeCondiciones').style.color = '#dc2626';
+            return;
+        }
+        const color = `hsl(${Math.floor(Math.random() * 360)}, 70%, 85%)`;
+        condiciones.push({ nombre: valor, color });
+        guardarCondiciones();
+        llenarSelectsCondicion();
+        renderListaCondiciones();
+        document.getElementById('mensajeCondiciones').textContent = '✅ Condición agregada.';
+        document.getElementById('mensajeCondiciones').style.color = '#16a34a';
+        input.value = '';
+    }
+
+    function editarCondicion(idx) {
+        const nombreActual = condiciones[idx].nombre;
+        const nuevo = prompt('Nuevo nombre para la condición:', nombreActual);
+        if (!nuevo || nuevo === nombreActual) return;
+        if (condiciones.some(c => c.nombre === nuevo) && nuevo !== nombreActual) {
+            alert('Ya existe una condición con ese nombre.');
+            return;
+        }
+        const anterior = nombreActual;
+        condiciones[idx].nombre = nuevo;
+        guardarCondiciones();
+        Object.keys(proyectos).forEach(proy => {
+            proyectos[proy].forEach(reg => {
+                if (reg.condicion === anterior) {
+                    reg.condicion = nuevo;
+                }
+            });
+        });
+        guardarProyectos();
+        llenarSelectsCondicion();
+        renderListaCondiciones();
+        document.getElementById('mensajeCondiciones').textContent = '✅ Condición actualizada.';
+        document.getElementById('mensajeCondiciones').style.color = '#16a34a';
+    }
+
+    function eliminarCondicion(idx) {
+        const cond = condiciones[idx];
+        if (cond.nombre === CONDICION_DEFAULT) return;
+        let enUso = false;
+        Object.keys(proyectos).forEach(proy => {
+            proyectos[proy].forEach(reg => {
+                if (reg.condicion === cond.nombre) enUso = true;
+            });
+        });
+        if (enUso) {
+            if (!confirm(`La condición "${cond.nombre}" está siendo usada en algunos registros. ¿Deseas eliminarla y asignar "Sin condición" a esos registros?`)) {
+                return;
+            }
+            Object.keys(proyectos).forEach(proy => {
+                proyectos[proy].forEach(reg => {
+                    if (reg.condicion === cond.nombre) {
+                        reg.condicion = CONDICION_DEFAULT;
+                    }
+                });
+            });
+            guardarProyectos();
+        }
+        condiciones.splice(idx, 1);
+        guardarCondiciones();
+        llenarSelectsCondicion();
+        renderListaCondiciones();
+        document.getElementById('mensajeCondiciones').textContent = '✅ Condición eliminada.';
+        document.getElementById('mensajeCondiciones').style.color = '#16a34a';
     }
 
     // ============================================================
@@ -960,6 +1216,8 @@
         }
         proyectoActivo = nuevo;
         localStorage.setItem('proyectoActivo', proyectoActivo);
+        // Reiniciar orden al cambiar de proyecto
+        ordenProgresiva = null;
         actualizarSelectorProyectos();
         selectedCodigo = null;
         reemplazoSeleccionado = null;
@@ -967,6 +1225,10 @@
         actualizarSeleccion();
         actualizarInfoReemplazo();
         renderGaleria();
+        // Si el modal de resultados está abierto, refrescar
+        if (document.getElementById('modalResultados').classList.contains('open')) {
+            renderTablaResultados();
+        }
         actualizarStatus(`Proyecto cambiado a ${nuevo}`, false);
     }
 
@@ -1182,7 +1444,7 @@
     }
 
     // ============================================================
-    // RENDER GALERÍA PRINCIPAL (sin cambios relevantes)
+    // RENDER GALERÍA PRINCIPAL
     // ============================================================
     function createSignalCard(s, isSelector = false) {
         const card = document.createElement('div');
@@ -1204,6 +1466,7 @@
             ${!isSelector ? `
             <div class="card-actions">
                 <button class="upload-btn" data-codigo="${s.codigo}" title="Cargar foto">📷</button>
+                <button class="edit-btn" data-codigo="${s.codigo}" title="Editar señal">✏️</button>
                 <button class="del-btn" data-codigo="${s.codigo}" title="Eliminar señal">✖</button>
             </div>` : ''}
         `;
@@ -1253,6 +1516,13 @@
                     }
                 };
                 input.click();
+            });
+
+            const editBtn = card.querySelector('.edit-btn');
+            editBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const codigo = editBtn.dataset.codigo;
+                abrirModalEditarSenal(codigo);
             });
 
             const delBtn = card.querySelector('.del-btn');
@@ -1762,7 +2032,13 @@
         document.getElementById('editRuta').value = registro.ruta || '';
         document.getElementById('editProgresiva').value = registro.progresiva || '';
         document.getElementById('editLado').value = registro.lado || 'Izquierdo';
-        document.getElementById('editCondicion').value = registro.condicion || 'Señaletica Existente a Cambiar';
+        const condSelect = document.getElementById('editCondicion');
+        llenarSelectsCondicion();
+        if (condiciones.some(c => c.nombre === registro.condicion)) {
+            condSelect.value = registro.condicion;
+        } else {
+            condSelect.value = CONDICION_DEFAULT;
+        }
         document.getElementById('editObservaciones').value = registro.observaciones || '';
         document.getElementById('mensajeEdicion').textContent = '';
         document.getElementById('modalEditarRegistro').classList.add('open');
@@ -1832,194 +2108,37 @@
     }
 
     // ============================================================
-    // FILTROS DINÁMICOS (igual que antes)
+    // ORDENAMIENTO POR PROGRESIVA (tres estados)
     // ============================================================
-    function inicializarFiltrosTabla() {
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const col = this.dataset.col;
-                toggleDropdown(col, this);
-            });
-        });
-
-        document.addEventListener('click', function(e) {
-            const target = e.target;
-            const isFilterBtn = target.closest('.filter-btn');
-            const isDropdown = target.closest('.filter-dropdown');
-            if (!isFilterBtn && !isDropdown) {
-                cerrarTodosDropdowns();
-            }
-        });
-
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                cerrarTodosDropdowns();
-            }
-        });
-
-        document.getElementById('btnLimpiarFiltrosTabla').addEventListener('click', function() {
-            filtrosTabla.tipo = [];
-            filtrosTabla.subtipo = [];
-            actualizarEstadoFiltros();
-            renderTablaResultados();
-            actualizarBadgeFiltros();
-            cerrarTodosDropdowns();
-        });
-    }
-
-    function cerrarTodosDropdowns() {
-        document.querySelectorAll('.filter-dropdown').forEach(d => d.classList.remove('open'));
-    }
-
-    function toggleDropdown(col, btn) {
-        document.querySelectorAll('.filter-dropdown').forEach(d => {
-            if (d.dataset.col !== col) d.classList.remove('open');
-        });
-
-        let dropdown = document.querySelector(`.filter-dropdown[data-col="${col}"]`);
-        if (!dropdown) {
-            dropdown = crearDropdown(col);
+    function toggleOrdenProgresiva() {
+        // Ciclo: null → 'asc' → 'desc' → null → ...
+        if (ordenProgresiva === null) {
+            ordenProgresiva = 'asc';
+        } else if (ordenProgresiva === 'asc') {
+            ordenProgresiva = 'desc';
+        } else if (ordenProgresiva === 'desc') {
+            ordenProgresiva = null;
         }
-
-        const rect = btn.getBoundingClientRect();
-        let left = rect.left;
-        let top = rect.bottom + 5;
-        const dropdownWidth = 180;
-        if (left + dropdownWidth > window.innerWidth) {
-            left = window.innerWidth - dropdownWidth - 10;
+        renderTablaResultados();
+        // Actualizar el encabezado visualmente
+        const th = document.getElementById('thProgresiva');
+        th.className = 'sortable';
+        if (ordenProgresiva) {
+            th.classList.add(ordenProgresiva);
         }
-        dropdown.style.top = top + 'px';
-        dropdown.style.left = left + 'px';
-        dropdown.style.display = 'block';
-
-        if (dropdown.classList.contains('open')) {
-            dropdown.classList.remove('open');
-        } else {
-            dropdown.classList.add('open');
-        }
-    }
-
-    function crearDropdown(col) {
-        const dropdown = document.createElement('div');
-        dropdown.className = 'filter-dropdown';
-        dropdown.dataset.col = col;
-
-        const registros = getRegistrosActivos();
-        const valores = new Set();
-        registros.forEach(r => {
-            const val = r[col] || '';
-            if (val) valores.add(val);
-        });
-        const valoresArr = Array.from(valores).sort();
-
-        const opcionesHTML = valoresArr.map(val => {
-            const checked = filtrosTabla[col].includes(val) ? 'checked' : '';
-            return `
-                <label class="filter-option">
-                    <input type="checkbox" value="${val}" ${checked}>
-                    ${val}
-                </label>
-            `;
-        }).join('');
-
-        dropdown.innerHTML = `
-            <div style="margin-bottom:6px; font-weight:600; font-size:0.8rem; color:#4b5563;">
-                Filtrar por ${col === 'tipo' ? 'TIPO' : 'SUBTIPO'}
-            </div>
-            ${opcionesHTML}
-            <div class="filter-actions">
-                <button class="btn-select-all">Seleccionar todos</button>
-                <button class="btn-clear-filter">Limpiar</button>
-            </div>
-        `;
-
-        dropdown.querySelectorAll('.filter-option input[type="checkbox"]').forEach(cb => {
-            cb.addEventListener('change', function(e) {
-                e.stopPropagation();
-                const valor = this.value;
-                const colName = dropdown.dataset.col;
-                if (this.checked) {
-                    if (!filtrosTabla[colName].includes(valor)) {
-                        filtrosTabla[colName].push(valor);
-                    }
-                } else {
-                    filtrosTabla[colName] = filtrosTabla[colName].filter(v => v !== valor);
-                }
-                actualizarEstadoFiltros();
-                renderTablaResultados();
-                actualizarBadgeFiltros();
-            });
-        });
-
-        dropdown.querySelector('.btn-select-all').addEventListener('click', function(e) {
-            e.stopPropagation();
-            const colName = dropdown.dataset.col;
-            const checkboxes = dropdown.querySelectorAll('.filter-option input[type="checkbox"]');
-            const valores = Array.from(checkboxes).map(cb => cb.value);
-            filtrosTabla[colName] = valores;
-            checkboxes.forEach(cb => cb.checked = true);
-            actualizarEstadoFiltros();
-            renderTablaResultados();
-            actualizarBadgeFiltros();
-        });
-
-        dropdown.querySelector('.btn-clear-filter').addEventListener('click', function(e) {
-            e.stopPropagation();
-            const colName = dropdown.dataset.col;
-            filtrosTabla[colName] = [];
-            dropdown.querySelectorAll('.filter-option input[type="checkbox"]').forEach(cb => cb.checked = false);
-            actualizarEstadoFiltros();
-            renderTablaResultados();
-            actualizarBadgeFiltros();
-        });
-
-        document.body.appendChild(dropdown);
-        return dropdown;
-    }
-
-    function actualizarEstadoFiltros() {
-        filtrosActivos = (filtrosTabla.tipo.length > 0 || filtrosTabla.subtipo.length > 0);
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-            const col = btn.dataset.col;
-            if (filtrosTabla[col] && filtrosTabla[col].length > 0) {
-                btn.classList.add('active');
-                let badge = btn.querySelector('.badge');
-                if (!badge) {
-                    badge = document.createElement('span');
-                    badge.className = 'badge';
-                    btn.appendChild(badge);
-                }
-                badge.textContent = filtrosTabla[col].length;
-            } else {
-                btn.classList.remove('active');
-                const badge = btn.querySelector('.badge');
-                if (badge) badge.remove();
-            }
-        });
-    }
-
-    function actualizarBadgeFiltros() {
-        const badge = document.getElementById('filtrosActivosBadge');
-        if (filtrosActivos) {
-            badge.style.display = 'inline';
-            let texto = '🔍 Filtros activos';
-            if (filtrosTabla.tipo.length > 0) texto += ` (Tipo: ${filtrosTabla.tipo.length})`;
-            if (filtrosTabla.subtipo.length > 0) texto += ` (Subtipo: ${filtrosTabla.subtipo.length})`;
-            badge.textContent = texto;
-        } else {
-            badge.style.display = 'none';
-        }
+        // Mostrar mensaje de estado
+        let estado = 'Sin orden (inserción)';
+        if (ordenProgresiva === 'asc') estado = 'Ascendente (menor a mayor)';
+        else if (ordenProgresiva === 'desc') estado = 'Descendente (mayor a menor)';
+        actualizarStatus(`📊 Orden: ${estado}`, false);
     }
 
     // ============================================================
-    // MODAL RESULTADOS (con colores por condición)
+    // MODAL RESULTADOS (con orden por progresiva)
     // ============================================================
     function mostrarResultados() {
         document.getElementById('modalResultados').classList.add('open');
         renderTablaResultados();
-        actualizarBadgeFiltros();
-        actualizarEstadoFiltros();
     }
 
     function renderTablaResultados() {
@@ -2034,53 +2153,28 @@
         }
         sinReg.style.display = 'none';
 
-        if (filtrosActivos) {
-            regs = regs.filter(r => {
-                let ok = true;
-                if (filtrosTabla.tipo.length > 0) {
-                    ok = ok && filtrosTabla.tipo.includes(r.tipo || '');
-                }
-                if (filtrosTabla.subtipo.length > 0) {
-                    ok = ok && filtrosTabla.subtipo.includes(r.subtipo || '');
-                }
-                return ok;
-            });
-        }
-
+        // Aplicar orden si existe
         if (ordenProgresiva) {
             regs.sort((a, b) => {
                 const va = a.progresiva || '';
                 const vb = b.progresiva || '';
-                if (ordenProgresiva === 'asc') return va.localeCompare(vb, undefined, { numeric: true });
-                else return vb.localeCompare(va, undefined, { numeric: true });
+                if (ordenProgresiva === 'asc') {
+                    return va.localeCompare(vb, undefined, { numeric: true });
+                } else { // desc
+                    return vb.localeCompare(va, undefined, { numeric: true });
+                }
             });
-        }
-
-        if (regs.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding:20px; color:#6b7280;">No hay registros que coincidan con los filtros.</td></tr>`;
-            return;
         }
 
         regs.forEach((r, idx) => {
             const tr = document.createElement('tr');
 
-            // Asignar clase según condición
-            let condClass = '';
-            let badgeText = r.condicion || '';
-            let badgeClass = '';
-            if (r.condicion === 'Señaletica Nueva') {
-                condClass = 'condicion-nueva';
-                badgeClass = 'nueva';
-            } else if (r.condicion === 'Señaletica Existente a Cambiar') {
-                condClass = 'condicion-cambiar';
-                badgeClass = 'cambiar';
-            } else if (r.condicion === 'Señaletica a Conservar') {
-                condClass = 'condicion-conservar';
-                badgeClass = 'conservar';
+            const color = getColorPorNombre(r.condicion);
+            if (color) {
+                tr.style.backgroundColor = color;
             }
-            if (condClass) {
-                tr.className = condClass;
-            }
+
+            let badgeText = r.condicion || CONDICION_DEFAULT;
 
             let reemplazoTexto = '-';
             if (r.reemplazo_codigo) {
@@ -2104,7 +2198,7 @@
                 <td>${r.tipo || ''}</td>
                 <td>${r.subtipo || ''}</td>
                 <td>${r.descripcion || ''}</td>
-                <td><span class="cond-badge ${badgeClass}">${badgeText}</span></td>
+                <td><span class="cond-badge" style="background:${color}; color:#1e293b;">${badgeText}</span></td>
                 <td>${reemplazoTexto}</td>
                 <td>${r.observaciones || ''}</td>
                 <td>
@@ -2128,22 +2222,16 @@
             });
         });
 
+        // Actualizar encabezado
         const th = document.getElementById('thProgresiva');
         th.className = 'sortable';
-        if (ordenProgresiva) th.classList.add(ordenProgresiva);
-    }
-
-    function toggleOrdenProgresiva() {
-        if (ordenProgresiva === 'asc') ordenProgresiva = 'desc';
-        else if (ordenProgresiva === 'desc') ordenProgresiva = null;
-        else ordenProgresiva = 'asc';
-        renderTablaResultados();
+        if (ordenProgresiva) {
+            th.classList.add(ordenProgresiva);
+        }
     }
 
     function cerrarModalResultados() {
         document.getElementById('modalResultados').classList.remove('open');
-        cerrarTodosDropdowns();
-        document.querySelectorAll('.filter-dropdown').forEach(d => d.remove());
     }
 
     // ============================================================
@@ -2184,7 +2272,7 @@
     }
 
     // ============================================================
-    // IMPORTAR ARCHIVO (sin cambios relevantes)
+    // IMPORTAR ARCHIVO
     // ============================================================
     function importarArchivo(file) {
         const reader = new FileReader();
@@ -2257,7 +2345,10 @@
             const tipo = String(row[colTipo] || '').trim();
             const subtipo = String(row[colSubtipo] || '').trim();
             const descripcion = String(row[colDescripcion] || '').trim();
-            const condicion = String(row[colCondicion] || '').trim() || 'Señaletica Existente a Cambiar';
+            let condicion = String(row[colCondicion] || '').trim() || CONDICION_DEFAULT;
+            if (!condiciones.some(c => c.nombre === condicion)) {
+                condicion = CONDICION_DEFAULT;
+            }
             let reemplazo = '';
             const reemplazoTexto = String(row[colReemplazo] || '').trim();
             if (reemplazoTexto) {
@@ -2410,7 +2501,7 @@
             }
         });
 
-        document.getElementById('thProgresiva').addEventListener('click', toggleOrdenProgresiva);
+        // El evento de ordenamiento ya está asignado en init() al thProgresiva
 
         document.getElementById('btnAbrirAgregar').addEventListener('click', abrirModalAgregar);
         document.getElementById('closeModalSenal').addEventListener('click', cerrarModalSenal);
